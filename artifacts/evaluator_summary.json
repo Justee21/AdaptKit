@@ -1,0 +1,10 @@
+{
+  "benchmark_type": "offline_conservative_rules",
+  "metrics": {
+    "examples": 28,
+    "feedback_detection_accuracy": 1.0,
+    "direction_accuracy": 1.0,
+    "false_positive_rate": 0.0,
+    "invalid_outputs": 0
+  }
+}

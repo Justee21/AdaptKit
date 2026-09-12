@@ -1,0 +1,26 @@
+{
+  "configuration": {
+    "steps": 500,
+    "seeds": 50,
+    "preferences": {
+      "debugging": {
+        "patch_first": 0.9,
+        "explanation_first": 0.2
+      }
+    }
+  },
+  "results": {
+    "random": {
+      "average_reward": 0.54696,
+      "cumulative_reward": 273.48,
+      "cumulative_regret": 175.09799999999967,
+      "optimal_action_rate": 0.49972000000000005
+    },
+    "thompson": {
+      "average_reward": 0.8938400000000001,
+      "cumulative_reward": 446.92,
+      "cumulative_regret": 2.506,
+      "optimal_action_rate": 0.9928400000000001
+    }
+  }
+}
