@@ -7,29 +7,17 @@ from typing import Any, Literal, cast
 
 from dotenv import load_dotenv
 from openai import OpenAI
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 from adaptkit import LLMFeedbackExtractor, Profile
 
 
-class OpenAIPreferenceEvent(BaseModel):
+class OpenAIJudgment(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    has_feedback: bool
-    reward: float | None
+    label: Literal["positive", "negative", "none"]
     confidence: float = Field(ge=0, le=1)
-    source: Literal["implicit"]
     reason: str | None
-
-    @model_validator(mode="after")
-    def validate_reward(self) -> "OpenAIPreferenceEvent":
-        if self.has_feedback and self.reward is None:
-            raise ValueError("feedback requires a reward")
-        if not self.has_feedback and self.reward is not None:
-            raise ValueError("no-feedback events must use a null reward")
-        if self.reward is not None and not -1 <= self.reward <= 1:
-            raise ValueError("reward must be within [-1, 1]")
-        return self
 
 
 def build_openai_judge() -> tuple[Callable[[list[dict[str, str]]], dict[str, Any]], str]:
@@ -48,13 +36,22 @@ def build_openai_judge() -> tuple[Callable[[list[dict[str, str]]], dict[str, Any
         response = client.responses.parse(
             model=model,
             input=cast(Any, messages),
-            text_format=OpenAIPreferenceEvent,
+            text_format=OpenAIJudgment,
             store=False,
-            max_output_tokens=500,
+            max_output_tokens=800,
+            reasoning={"effort": "low"},
         )
         if response.output_parsed is None:
             raise RuntimeError("OpenAI response did not contain a parsed preference event")
-        return response.output_parsed.model_dump()
+        judgment = response.output_parsed
+        reward = 1.0 if judgment.label == "positive" else -1.0 if judgment.label == "negative" else None
+        return {
+            "has_feedback": judgment.label != "none",
+            "reward": reward,
+            "confidence": judgment.confidence,
+            "source": "implicit",
+            "reason": judgment.reason,
+        }
 
     return judge, model
 

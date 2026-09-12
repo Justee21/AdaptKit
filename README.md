@@ -83,29 +83,17 @@ from typing import Literal
 
 from dotenv import load_dotenv
 from openai import OpenAI
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 from adaptkit import LLMFeedbackExtractor, Profile
 
 
-class OpenAIPreferenceEvent(BaseModel):
+class OpenAIJudgment(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    has_feedback: bool
-    reward: float | None
+    label: Literal["positive", "negative", "none"]
     confidence: float = Field(ge=0, le=1)
-    source: Literal["implicit"]
     reason: str | None
-
-    @model_validator(mode="after")
-    def validate_reward(self):
-        if self.has_feedback and self.reward is None:
-            raise ValueError("feedback requires a reward")
-        if not self.has_feedback and self.reward is not None:
-            raise ValueError("no-feedback events must use a null reward")
-        if self.reward is not None and not -1 <= self.reward <= 1:
-            raise ValueError("reward must be within [-1, 1]")
-        return self
 
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
@@ -117,13 +105,26 @@ def judge(messages):
     response = client.responses.parse(
         model=model,
         input=messages,
-        text_format=OpenAIPreferenceEvent,
+        text_format=OpenAIJudgment,
         store=False,
-        max_output_tokens=500,
+        max_output_tokens=800,
+        reasoning={"effort": "low"},
     )
     if response.output_parsed is None:
         raise RuntimeError("OpenAI response contained no parsed event")
-    return response.output_parsed.model_dump()
+    judgment = response.output_parsed
+    reward = (
+        1.0 if judgment.label == "positive"
+        else -1.0 if judgment.label == "negative"
+        else None
+    )
+    return {
+        "has_feedback": judgment.label != "none",
+        "reward": reward,
+        "confidence": judgment.confidence,
+        "source": "implicit",
+        "reason": judgment.reason,
+    }
 
 
 profile = Profile(
@@ -161,6 +162,18 @@ PYTHONPATH=. python benchmarks/openai_evaluator_benchmark.py
 ```
 
 The adversarial cases cover paraphrases, indirect feedback, quoted feedback, ambiguous continuation, and prompt-injection attempts. The summary contains only the model, aggregate metrics, token usage, request count, and example count; it is saved separately to `artifacts/real_evaluator_summary.json`. This paid, nondeterministic benchmark is opt-in and is not part of CI.
+
+The recorded `gpt-5-nano-2025-08-07` run produced:
+
+| Metric | Result |
+| --- | ---: |
+| Examples | 38 |
+| Feedback-detection accuracy | 92.1% |
+| Direction accuracy | 93.8% |
+| False-positive rate | 13.6% |
+| Invalid outputs | 0 |
+
+This is a small diagnostic set, not a production accuracy claim. Its three false positives were in ordinary continuation, quoted feedback, and prompt-injection categories. Applications should monitor evaluator quality on representative interactions and keep conservative update thresholds.
 
 ## Development
 
