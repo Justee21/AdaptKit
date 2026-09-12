@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
+
+StateUpdater = Callable[[dict[str, float]], None]
 
 
 class StateStore(ABC):
@@ -18,6 +20,17 @@ class StateStore(ABC):
         state: Mapping[str, float],
     ) -> None:
         """Store learner state for one user/context/action tuple."""
+
+    @abstractmethod
+    def atomic_update(
+        self,
+        user_id: str,
+        context: str,
+        action: str,
+        initial_state: Mapping[str, float],
+        updater: StateUpdater,
+    ) -> dict[str, float]:
+        """Update and return learner state while holding the store's write lock."""
 
     @abstractmethod
     def snapshot(self, user_id: str) -> dict[str, dict[str, dict[str, float]]]:

@@ -1,6 +1,8 @@
 import asyncio
 import math
+import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from typing import cast
 
 from adaptkit import (
@@ -60,6 +62,35 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(first.state()["writing"]["a"]["beta"], 2)
         self.assertNotIn("b", first.state()["debugging"])
         self.assertEqual(second.state()["debugging"]["b"]["alpha"], 2)
+
+    def test_simultaneous_positive_updates_are_atomic(self):
+        class RaceAmplifyingStore(InMemoryStore):
+            """Makes the removed get-then-set implementation lose an update."""
+
+            def __init__(self) -> None:
+                super().__init__()
+                self.concurrent_reads = threading.Barrier(2)
+
+            def get(self, user_id: str, context: str, action: str) -> dict[str, float] | None:
+                state = super().get(user_id, context, action)
+                self.concurrent_reads.wait(timeout=5)
+                return state
+
+        store = RaceAmplifyingStore()
+        profile = Profile(user_id="u", actions=["a", "b"], store=store)
+        simultaneous_start = threading.Barrier(3)
+
+        def positive_update() -> None:
+            simultaneous_start.wait(timeout=5)
+            profile.like("ctx", "a")
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            futures = [pool.submit(positive_update) for _ in range(2)]
+            simultaneous_start.wait(timeout=5)
+            for future in futures:
+                future.result(timeout=5)
+
+        self.assertEqual(profile.state()["ctx"]["a"], {"alpha": 3.0, "beta": 1.0})
 
     def test_no_feedback_and_threshold_boundaries(self):
         outputs = iter(

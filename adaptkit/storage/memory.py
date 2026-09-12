@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from threading import RLock
 
-from .base import StateStore
+from .base import StateStore, StateUpdater
 
 
 class InMemoryStore(StateStore):
@@ -25,6 +25,21 @@ class InMemoryStore(StateStore):
     ) -> None:
         with self._lock:
             self._states[(user_id, context, action)] = dict(state)
+
+    def atomic_update(
+        self,
+        user_id: str,
+        context: str,
+        action: str,
+        initial_state: Mapping[str, float],
+        updater: StateUpdater,
+    ) -> dict[str, float]:
+        key = (user_id, context, action)
+        with self._lock:
+            state = dict(self._states.get(key, initial_state))
+            updater(state)
+            self._states[key] = state
+            return dict(state)
 
     def snapshot(self, user_id: str) -> dict[str, dict[str, dict[str, float]]]:
         result: dict[str, dict[str, dict[str, float]]] = {}

@@ -24,6 +24,21 @@ class EvaluatorBenchmarkTests(unittest.TestCase):
             },
         )
 
+    def test_adversarial_dataset_has_required_coverage(self):
+        path = Path(__file__).parents[1] / "benchmarks/data/evaluator_adversarial_examples.json"
+        rows = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(len(rows), 10)
+        self.assertEqual(
+            {row["category"] for row in rows},
+            {
+                "paraphrase",
+                "indirect_feedback",
+                "quoted_feedback",
+                "ambiguous_continuation",
+                "prompt_injection",
+            },
+        )
+
     def test_score_calculation(self):
         expected = [
             {"expected_has_feedback": True, "expected_direction": "positive"},

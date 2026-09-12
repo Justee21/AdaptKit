@@ -1,0 +1,20 @@
+{
+  "benchmark_type": "real_llm",
+  "status": "failed",
+  "model": "gpt-5-nano",
+  "example_count": 38,
+  "metrics": {
+    "feedback_detection_accuracy": null,
+    "direction_accuracy": null,
+    "false_positive_rate": null,
+    "invalid_outputs": 38
+  },
+  "usage": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "total_tokens": null
+  },
+  "requests": 1,
+  "store": false,
+  "error_type": "ValidationError"
+}

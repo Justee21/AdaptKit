@@ -25,9 +25,17 @@ class ThompsonLearner(BaseLearner):
     def update(self, user_id: str, context: str, action: str, reward: int) -> None:
         if reward not in (-1, 1):
             raise ValueError("reward must be 1 or -1")
-        state = self._state(user_id, context, action)
-        if reward == 1:
-            state["alpha"] += 1
-        else:
-            state["beta"] += 1
-        self.store.set(user_id, context, action, state)
+
+        def apply(state: dict[str, float]) -> None:
+            if reward == 1:
+                state["alpha"] += 1
+            else:
+                state["beta"] += 1
+
+        self.store.atomic_update(
+            user_id,
+            context,
+            action,
+            {"alpha": 1.0, "beta": 1.0},
+            apply,
+        )
