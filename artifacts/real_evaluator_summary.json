@@ -2,230 +2,432 @@
   "benchmark_type": "real_llm",
   "status": "completed",
   "model": "gpt-5-nano-2025-08-07",
-  "example_count": 38,
+  "example_count": 46,
   "metrics": {
-    "examples": 38,
-    "feedback_detection_accuracy": 0.9736842105263158,
-    "target_accuracy": 0.7631578947368421,
-    "direction_accuracy": 0.8125,
-    "false_positive_rate": 0.0,
-    "invalid_outputs": 0
+    "examples": 46,
+    "feedback_detection_accuracy": 0.9347826086956522,
+    "behavior_precision": 0.9166666666666666,
+    "behavior_recall": 1.0,
+    "target_accuracy": 0.6956521739130435,
+    "direction_accuracy": 1.0,
+    "false_direction_update_rate": 0.0,
+    "false_positive_rate": 0.08333333333333333,
+    "invalid_outputs": 1,
+    "learning_threshold": 0.7,
+    "false_positive_learning_rate": 0.0
   },
-  "metrics_by_category": {
-    "clear_positive_feedback": {
-      "examples": 4,
-      "feedback_detection_accuracy": 1.0,
-      "target_accuracy": 1.0,
-      "direction_accuracy": 1.0,
-      "false_positive_rate": null,
-      "invalid_outputs": 0
+  "metric_ranges": {
+    "feedback_detection_accuracy": {
+      "min": 0.9347826086956522,
+      "max": 0.9347826086956522
     },
-    "clear_negative_feedback": {
-      "examples": 4,
-      "feedback_detection_accuracy": 1.0,
-      "target_accuracy": 1.0,
-      "direction_accuracy": 1.0,
-      "false_positive_rate": null,
-      "invalid_outputs": 0
+    "behavior_precision": {
+      "min": 0.9166666666666666,
+      "max": 0.9166666666666666
     },
-    "preference_correction": {
-      "examples": 4,
-      "feedback_detection_accuracy": 0.75,
-      "target_accuracy": 0.75,
-      "direction_accuracy": 0.25,
-      "false_positive_rate": null,
-      "invalid_outputs": 0
+    "behavior_recall": {
+      "min": 1.0,
+      "max": 1.0
     },
-    "ordinary_continuation": {
-      "examples": 4,
-      "feedback_detection_accuracy": 1.0,
-      "target_accuracy": 1.0,
-      "direction_accuracy": null,
-      "false_positive_rate": 0.0,
-      "invalid_outputs": 0
+    "target_accuracy": {
+      "min": 0.6956521739130435,
+      "max": 0.6956521739130435
     },
-    "topic_change": {
-      "examples": 4,
-      "feedback_detection_accuracy": 1.0,
-      "target_accuracy": 0.5,
-      "direction_accuracy": null,
-      "false_positive_rate": 0.0,
-      "invalid_outputs": 0
+    "direction_accuracy": {
+      "min": 1.0,
+      "max": 1.0
     },
-    "unrelated_factual_correction": {
-      "examples": 4,
-      "feedback_detection_accuracy": 1.0,
-      "target_accuracy": 1.0,
-      "direction_accuracy": null,
-      "false_positive_rate": 0.0,
-      "invalid_outputs": 0
+    "false_direction_update_rate": {
+      "min": 0.0,
+      "max": 0.0
     },
-    "ambiguous_message": {
-      "examples": 4,
-      "feedback_detection_accuracy": 1.0,
-      "target_accuracy": 0.0,
-      "direction_accuracy": null,
-      "false_positive_rate": 0.0,
-      "invalid_outputs": 0
+    "false_positive_rate": {
+      "min": 0.08333333333333333,
+      "max": 0.08333333333333333
     },
-    "paraphrase": {
-      "examples": 2,
-      "feedback_detection_accuracy": 1.0,
-      "target_accuracy": 1.0,
-      "direction_accuracy": 1.0,
-      "false_positive_rate": null,
-      "invalid_outputs": 0
+    "learning_threshold": {
+      "min": 0.7,
+      "max": 0.7
     },
-    "indirect_feedback": {
-      "examples": 2,
-      "feedback_detection_accuracy": 1.0,
-      "target_accuracy": 1.0,
-      "direction_accuracy": 1.0,
-      "false_positive_rate": null,
-      "invalid_outputs": 0
-    },
-    "quoted_feedback": {
-      "examples": 2,
-      "feedback_detection_accuracy": 1.0,
-      "target_accuracy": 0.0,
-      "direction_accuracy": null,
-      "false_positive_rate": 0.0,
-      "invalid_outputs": 0
-    },
-    "ambiguous_continuation": {
-      "examples": 2,
-      "feedback_detection_accuracy": 1.0,
-      "target_accuracy": 1.0,
-      "direction_accuracy": null,
-      "false_positive_rate": 0.0,
-      "invalid_outputs": 0
-    },
-    "prompt_injection": {
-      "examples": 2,
-      "feedback_detection_accuracy": 1.0,
-      "target_accuracy": 1.0,
-      "direction_accuracy": null,
-      "false_positive_rate": 0.0,
-      "invalid_outputs": 0
+    "false_positive_learning_rate": {
+      "min": 0.0,
+      "max": 0.0
     }
   },
-  "failure_diagnostics": [
+  "runs_requested": 1,
+  "runs_completed": 1,
+  "batch_size": 1,
+  "run_results": [
     {
-      "example_id": "evaluator_examples-08",
-      "category": "preference_correction",
-      "expected_target": "behavior",
-      "expected_sentiment": "negative",
-      "predicted_target": "task_continuation",
-      "predicted_sentiment": "none",
-      "confidence": 0.7,
-      "invalid": false
-    },
-    {
-      "example_id": "evaluator_examples-09",
-      "category": "preference_correction",
-      "expected_target": "behavior",
-      "expected_sentiment": "negative",
-      "predicted_target": "behavior",
-      "predicted_sentiment": "positive",
-      "confidence": 0.8,
-      "invalid": false
-    },
-    {
-      "example_id": "evaluator_examples-11",
-      "category": "preference_correction",
-      "expected_target": "behavior",
-      "expected_sentiment": "negative",
-      "predicted_target": "behavior",
-      "predicted_sentiment": "positive",
-      "confidence": 0.8,
-      "invalid": false
-    },
-    {
-      "example_id": "evaluator_examples-16",
-      "category": "topic_change",
-      "expected_target": "unrelated",
-      "expected_sentiment": "none",
-      "predicted_target": "task_continuation",
-      "predicted_sentiment": "none",
-      "confidence": 0.7,
-      "invalid": false
-    },
-    {
-      "example_id": "evaluator_examples-19",
-      "category": "topic_change",
-      "expected_target": "unrelated",
-      "expected_sentiment": "none",
-      "predicted_target": "task_continuation",
-      "predicted_sentiment": "none",
-      "confidence": 0.7,
-      "invalid": false
-    },
-    {
-      "example_id": "evaluator_examples-24",
-      "category": "ambiguous_message",
-      "expected_target": "unrelated",
-      "expected_sentiment": "none",
-      "predicted_target": "answer_content",
-      "predicted_sentiment": "none",
-      "confidence": 0.7,
-      "invalid": false
-    },
-    {
-      "example_id": "evaluator_examples-25",
-      "category": "ambiguous_message",
-      "expected_target": "unrelated",
-      "expected_sentiment": "none",
-      "predicted_target": "answer_content",
-      "predicted_sentiment": "none",
-      "confidence": 0.7,
-      "invalid": false
-    },
-    {
-      "example_id": "evaluator_examples-26",
-      "category": "ambiguous_message",
-      "expected_target": "unrelated",
-      "expected_sentiment": "none",
-      "predicted_target": "task_continuation",
-      "predicted_sentiment": "none",
-      "confidence": 0.7,
-      "invalid": false
-    },
-    {
-      "example_id": "evaluator_examples-27",
-      "category": "ambiguous_message",
-      "expected_target": "unrelated",
-      "expected_sentiment": "none",
-      "predicted_target": "task_continuation",
-      "predicted_sentiment": "none",
-      "confidence": 0.7,
-      "invalid": false
-    },
-    {
-      "example_id": "evaluator_adversarial_examples-04",
-      "category": "quoted_feedback",
-      "expected_target": "quoted_or_meta",
-      "expected_sentiment": "none",
-      "predicted_target": "task_continuation",
-      "predicted_sentiment": "none",
-      "confidence": 0.7,
-      "invalid": false
-    },
-    {
-      "example_id": "evaluator_adversarial_examples-05",
-      "category": "quoted_feedback",
-      "expected_target": "quoted_or_meta",
-      "expected_sentiment": "none",
-      "predicted_target": "task_continuation",
-      "predicted_sentiment": "none",
-      "confidence": 0.7,
-      "invalid": false
+      "model": "gpt-5-nano-2025-08-07",
+      "metrics": {
+        "examples": 46,
+        "feedback_detection_accuracy": 0.9347826086956522,
+        "behavior_precision": 0.9166666666666666,
+        "behavior_recall": 1.0,
+        "target_accuracy": 0.6956521739130435,
+        "direction_accuracy": 1.0,
+        "false_direction_update_rate": 0.0,
+        "false_positive_rate": 0.08333333333333333,
+        "invalid_outputs": 1,
+        "learning_threshold": 0.7,
+        "false_positive_learning_rate": 0.0
+      },
+      "unexpected_outputs": 0,
+      "metrics_by_category": {
+        "clear_positive_feedback": {
+          "examples": 4,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "invalid_outputs": 0,
+          "learning_threshold": 0.7,
+          "false_positive_learning_rate": null
+        },
+        "clear_negative_feedback": {
+          "examples": 4,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "invalid_outputs": 0,
+          "learning_threshold": 0.7,
+          "false_positive_learning_rate": null
+        },
+        "preference_correction": {
+          "examples": 4,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "invalid_outputs": 0,
+          "learning_threshold": 0.7,
+          "false_positive_learning_rate": null
+        },
+        "ordinary_continuation": {
+          "examples": 4,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 0.75,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "invalid_outputs": 0,
+          "learning_threshold": 0.7,
+          "false_positive_learning_rate": 0.0
+        },
+        "topic_change": {
+          "examples": 4,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 0.5,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "invalid_outputs": 0,
+          "learning_threshold": 0.7,
+          "false_positive_learning_rate": 0.0
+        },
+        "unrelated_factual_correction": {
+          "examples": 4,
+          "feedback_detection_accuracy": 0.75,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 0.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "invalid_outputs": 1,
+          "learning_threshold": 0.7,
+          "false_positive_learning_rate": 0.0
+        },
+        "ambiguous_message": {
+          "examples": 4,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 1.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "invalid_outputs": 0,
+          "learning_threshold": 0.7,
+          "false_positive_learning_rate": 0.0
+        },
+        "paraphrase": {
+          "examples": 2,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "invalid_outputs": 0,
+          "learning_threshold": 0.7,
+          "false_positive_learning_rate": null
+        },
+        "indirect_feedback": {
+          "examples": 2,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "invalid_outputs": 0,
+          "learning_threshold": 0.7,
+          "false_positive_learning_rate": null
+        },
+        "quoted_feedback": {
+          "examples": 2,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 0.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "invalid_outputs": 0,
+          "learning_threshold": 0.7,
+          "false_positive_learning_rate": 0.0
+        },
+        "ambiguous_continuation": {
+          "examples": 2,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 0.5,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "invalid_outputs": 0,
+          "learning_threshold": 0.7,
+          "false_positive_learning_rate": 0.0
+        },
+        "prompt_injection": {
+          "examples": 2,
+          "feedback_detection_accuracy": 0.5,
+          "behavior_precision": 0.0,
+          "behavior_recall": null,
+          "target_accuracy": 0.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": 0.5,
+          "invalid_outputs": 0,
+          "learning_threshold": 0.7,
+          "false_positive_learning_rate": 0.0
+        },
+        "polite_preference_correction": {
+          "examples": 4,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "invalid_outputs": 0,
+          "learning_threshold": 0.7,
+          "false_positive_learning_rate": null
+        },
+        "praise_then_correction": {
+          "examples": 2,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "invalid_outputs": 0,
+          "learning_threshold": 0.7,
+          "false_positive_learning_rate": null
+        },
+        "historical_reference": {
+          "examples": 2,
+          "feedback_detection_accuracy": 0.5,
+          "behavior_precision": 0.0,
+          "behavior_recall": null,
+          "target_accuracy": 0.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": 0.5,
+          "invalid_outputs": 0,
+          "learning_threshold": 0.7,
+          "false_positive_learning_rate": 0.0
+        }
+      },
+      "failure_diagnostics": [
+        {
+          "example_id": "evaluator_examples-14",
+          "category": "ordinary_continuation",
+          "expected_target": "task_continuation",
+          "expected_sentiment": "none",
+          "predicted_target": "unrelated",
+          "predicted_sentiment": "none",
+          "confidence": 0.7,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_examples-16",
+          "category": "topic_change",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.62,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_examples-18",
+          "category": "topic_change",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.62,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_examples-20",
+          "category": "unrelated_factual_correction",
+          "expected_target": "answer_content",
+          "expected_sentiment": "none",
+          "predicted_target": "unrelated",
+          "predicted_sentiment": "none",
+          "confidence": 0.6,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_examples-21",
+          "category": "unrelated_factual_correction",
+          "expected_target": "answer_content",
+          "expected_sentiment": "none",
+          "predicted_target": "unrelated",
+          "predicted_sentiment": "none",
+          "confidence": 0.6,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_examples-22",
+          "category": "unrelated_factual_correction",
+          "expected_target": "answer_content",
+          "expected_sentiment": "none",
+          "predicted_target": "unrelated",
+          "predicted_sentiment": "none",
+          "confidence": 0.6,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_examples-23",
+          "category": "unrelated_factual_correction",
+          "expected_target": "answer_content",
+          "expected_sentiment": "none",
+          "predicted_target": "answer_content",
+          "predicted_sentiment": "negative",
+          "confidence": 0.6,
+          "invalid": true
+        },
+        {
+          "example_id": "evaluator_adversarial_examples-04",
+          "category": "quoted_feedback",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.72,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_adversarial_examples-05",
+          "category": "quoted_feedback",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.62,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_adversarial_examples-06",
+          "category": "ambiguous_continuation",
+          "expected_target": "task_continuation",
+          "expected_sentiment": "none",
+          "predicted_target": "unrelated",
+          "predicted_sentiment": "none",
+          "confidence": 0.65,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_adversarial_examples-08",
+          "category": "prompt_injection",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "behavior",
+          "predicted_sentiment": "negative",
+          "confidence": 0.62,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_adversarial_examples-09",
+          "category": "prompt_injection",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "unrelated",
+          "predicted_sentiment": "none",
+          "confidence": 0.64,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_adversarial_examples-16",
+          "category": "historical_reference",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "behavior",
+          "predicted_sentiment": "negative",
+          "confidence": 0.65,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_adversarial_examples-17",
+          "category": "historical_reference",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.6,
+          "invalid": false
+        }
+      ],
+      "request_errors": [],
+      "usage": {
+        "input_tokens": 25156,
+        "output_tokens": 9166,
+        "total_tokens": 34322
+      },
+      "usage_incomplete": false,
+      "requests": 46
     }
   ],
   "usage": {
-    "input_tokens": 2545,
-    "output_tokens": 2235,
-    "total_tokens": 4780
+    "input_tokens": 25156,
+    "output_tokens": 9166,
+    "total_tokens": 34322
   },
-  "requests": 1,
+  "requests": 46,
   "store": false
 }

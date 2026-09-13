@@ -21,10 +21,14 @@ def run_trial(learner: str, *, steps: int, seed: int) -> list[SimulationStep]:
     best = user.best_action(CONTEXT)
     optimal_reward = user.expected_reward(CONTEXT, best)
     results: list[SimulationStep] = []
-    for _ in range(steps):
-        action = profile.choose(CONTEXT)
+    for step in range(steps):
+        decision = profile.choose(CONTEXT)
+        action = decision.action
         reward = user.react(CONTEXT, action)
-        profile.learner.update(profile.user_id, CONTEXT, action, 1 if reward else -1)
+        if reward:
+            profile.like(decision, idempotency_key=f"simulation-{step}")
+        else:
+            profile.dislike(decision, idempotency_key=f"simulation-{step}")
         results.append(
             SimulationStep(
                 reward=reward,

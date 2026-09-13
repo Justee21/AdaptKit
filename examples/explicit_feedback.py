@@ -6,9 +6,14 @@ profile = Profile(
     seed=7,
 )
 
-action = profile.choose("debugging")
-print("chosen:", action)
+decision = profile.choose("debugging")
+print("chosen:", decision.action)
 
-profile.like("debugging", action)
-profile.prefer("debugging", preferred="patch_first", rejected="explanation_first")
+profile.like(decision, idempotency_key="thumb-up-1")
+profile.prefer(
+    "debugging",
+    preferred="patch_first",
+    rejected="explanation_first",
+    idempotency_key="pairwise-1",
+)
 print("state:", profile.state())

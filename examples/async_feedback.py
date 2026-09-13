@@ -15,9 +15,10 @@ async def main():
         actions=["concise", "detailed"],
         evaluator=LLMFeedbackExtractor(async_judge=demo_async_judge),
     )
+    decision = profile.choose("architecture")
     result = await profile.aobserve(
-        context="architecture",
-        action="detailed",
+        decision=decision,
+        idempotency_key="turn-1-implicit",
         previous_prompt="Explain the design.",
         previous_response="Here is a detailed walkthrough...",
         user_message="Thanks, that explanation was helpful.",

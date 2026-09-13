@@ -56,7 +56,12 @@ def load_judge(spec: str | None) -> tuple[Callable, str]:
     return function, spec
 
 
-def score(expected: list[dict[str, Any]], predictions: list[dict[str, Any]]) -> dict[str, float | int]:
+def score(
+    expected: list[dict[str, Any]],
+    predictions: list[dict[str, Any]],
+    *,
+    learning_threshold: float = 0.70,
+) -> dict[str, float | int]:
     if len(expected) != len(predictions) or not expected:
         raise ValueError("expected and predictions must have the same nonzero length")
     detection_correct = 0
@@ -65,6 +70,10 @@ def score(expected: list[dict[str, Any]], predictions: list[dict[str, Any]]) -> 
     direction_correct = 0
     non_feedback_total = 0
     false_positives = 0
+    false_positive_learning_updates = 0
+    true_behavior_predictions = 0
+    behavior_predictions = 0
+    false_direction_updates = 0
     invalid = 0
     for row, prediction in zip(expected, predictions):
         expected_feedback = row["expected_has_feedback"]
@@ -78,20 +87,40 @@ def score(expected: list[dict[str, Any]], predictions: list[dict[str, Any]]) -> 
         target = prediction["target"]
         predicted_feedback = target == "behavior"
         predicted_direction = prediction["sentiment"]
+        behavior_predictions += predicted_feedback
         detection_correct += predicted_feedback == expected_feedback
         target_correct += target == row["expected_target"]
         if expected_feedback:
             feedback_total += 1
+            true_behavior_predictions += predicted_feedback
             direction_correct += predicted_feedback and predicted_direction == row["expected_direction"]
+            false_direction_updates += (
+                predicted_feedback and predicted_direction != row["expected_direction"]
+            )
         else:
             non_feedback_total += 1
             false_positives += predicted_feedback
+            false_positive_learning_updates += (
+                predicted_feedback
+                and prediction.get("confidence", 1.0) >= learning_threshold
+            )
     return {
         "examples": len(expected),
+        "learning_threshold": learning_threshold,
         "feedback_detection_accuracy": detection_correct / len(expected),
+        "behavior_precision": (
+            true_behavior_predictions / behavior_predictions if behavior_predictions else 0.0
+        ),
+        "behavior_recall": true_behavior_predictions / feedback_total,
         "target_accuracy": target_correct / len(expected),
         "direction_accuracy": direction_correct / feedback_total,
+        "false_direction_update_rate": (
+            false_direction_updates / behavior_predictions if behavior_predictions else 0.0
+        ),
         "false_positive_rate": false_positives / non_feedback_total,
+        "false_positive_learning_rate": (
+            false_positive_learning_updates / non_feedback_total
+        ),
         "invalid_outputs": invalid,
     }
 

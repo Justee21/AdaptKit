@@ -6,3 +6,5 @@ build/
 dist/
 *.egg-info/
 .env
+.DS_Store
+.adaptkit-playground.db*

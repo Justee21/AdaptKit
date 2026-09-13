@@ -2,10 +2,15 @@
   "benchmark_type": "offline_conservative_rules",
   "metrics": {
     "examples": 28,
+    "learning_threshold": 0.7,
     "feedback_detection_accuracy": 1.0,
+    "behavior_precision": 1.0,
+    "behavior_recall": 1.0,
     "target_accuracy": 1.0,
     "direction_accuracy": 1.0,
+    "false_direction_update_rate": 0.0,
     "false_positive_rate": 0.0,
+    "false_positive_learning_rate": 0.0,
     "invalid_outputs": 0
   }
 }

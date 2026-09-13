@@ -21,9 +21,10 @@ profile = Profile(
     actions=["patch_first", "explanation_first"],
     evaluator=LLMFeedbackExtractor(judge=demo_judge),
 )
+decision = profile.choose("debugging")
 result = profile.observe(
-    context="debugging",
-    action="explanation_first",
+    decision=decision,
+    idempotency_key="turn-1-implicit",
     previous_prompt="Why does this recursion fail?",
     previous_response="Here is a detailed explanation, followed by the patch...",
     user_message="Just show me the line I need to change.",

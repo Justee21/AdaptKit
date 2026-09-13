@@ -1,45 +1,85 @@
 # AdaptKit
 
-AdaptKit is a small, provider-independent Python SDK for per-user, per-context Thompson Sampling. It learns which agent behavior an individual user prefers in a given context. An LLM can interpret conversational feedback, while the bandit alone updates the policy.
+AdaptKit is a compact, provider-independent Python SDK for per-user, per-context Thompson Sampling. It learns which mutually exclusive agent behavior works best for an individual user in a named context.
 
 ```text
-choose behavior → agent responds → user reacts → evaluator extracts evidence → bandit updates
+choose action → map action to an instruction → agent responds → observe feedback → update policy
 ```
+
+AdaptKit chooses an action key. Your application decides what that key means and sends the mapped instruction to its model. AdaptKit does not own the agent, rewrite prompts, or automatically send `Decision.action` to an LLM.
 
 ## Installation
 
-Install the provider-independent core:
+AdaptKit is not published to PyPI yet. Install the repository locally:
 
 ```bash
+git clone https://github.com/Justee21/AdaptKit.git
+cd AdaptKit
 python -m pip install -e .
 ```
 
-Install the optional OpenAI evaluation/example dependencies:
+For the optional OpenAI examples and evaluator benchmark:
 
 ```bash
 python -m pip install -e '.[evaluation]'
-```
-
-Copy the placeholder environment file and fill in your own values:
-
-```bash
 cp .env.example .env
 ```
+
+Set these values in the ignored `.env` file:
 
 ```dotenv
 OPENAI_API_KEY=your-api-key
 OPENAI_JUDGE_MODEL=your-structured-output-capable-model
+OPENAI_AGENT_MODEL=your-agent-model
 ```
 
-`.env` is ignored by Git. Do not commit it.
+`OPENAI_AGENT_MODEL` is optional and falls back to `OPENAI_JUDGE_MODEL`. Never commit `.env`; only `.env.example` belongs in Git.
 
-## Core usage
+## Quick start
+
+```python
+from adaptkit import Profile, SQLiteStore
+
+instructions = {
+    "patch_first": "Show the code fix first, then explain briefly.",
+    "explanation_first": "Explain the cause first, then show the fix.",
+}
+
+profile = Profile(
+    user_id="user-123",
+    actions=tuple(instructions),
+    store=SQLiteStore("adaptkit.db"),
+)
+
+decision = profile.choose("debugging")
+
+# `decision.action` is an app-owned lookup key. Its mapped value—not the key—
+# is normally placed in the model's system/developer/instructions channel.
+response = agent.run(
+    prompt=user_prompt,
+    system_instruction=instructions[decision.action],
+)
+
+# A durable event ID from your application is the best idempotency key.
+profile.like(decision, idempotency_key="thumbs-up-event-456")
+```
+
+The returned immutable `Decision` records its ID, user, context, selected action, creation time, and the policy version that produced it. `policy_version` begins at \(0\) and increments once whenever that user's policy for that context changes.
+
+Each `(user, context, action)` starts with a posterior of \(\operatorname{Beta}(1,1)\). Accepted positive feedback increments \(\alpha\) by \(1\); accepted negative feedback increments \(\beta\) by \(1\). Confidence gates implicit signals but does not fractionalize the update in V1.
+
+## Implicit conversational feedback
+
+An evaluator classifies the newest user message into a target and selected-action-relative sentiment:
+
+- `behavior` with `positive` or `negative` may update the selected action.
+- `answer_content`, `task_continuation`, `quoted_or_meta`, and `unrelated` use `none` and never update the policy.
 
 ```python
 from adaptkit import LLMFeedbackExtractor, Profile
 
 def judge(messages):
-    # Call any provider here and return its validated structured output.
+    # Call any provider and return validated structured output.
     return {"target": "behavior", "sentiment": "negative", "confidence": 0.95}
 
 profile = Profile(
@@ -48,35 +88,74 @@ profile = Profile(
     evaluator=LLMFeedbackExtractor(judge=judge),
 )
 
-strategy = profile.choose("debugging")
-response = agent.run(prompt=user_prompt, strategy=strategy)
-
+decision = profile.choose("debugging")
 result = profile.observe(
-    context="debugging",
-    action=strategy,
+    decision=decision,
+    idempotency_key="conversation-turn-18",
     previous_prompt=user_prompt,
-    previous_response=response,
+    previous_response=agent_response,
     user_message=next_user_message,
 )
 ```
 
-Each `(user, context, action)` has its own Thompson Sampling posterior beginning at \(\operatorname{Beta}(1,1)\). Explicit feedback bypasses the evaluator:
+Sentiment is always about the action that produced the prior response. If `explanation_first` was selected and the user politely asks to see the patch first, that is negative evidence for `explanation_first`, not positive evidence for the requested replacement.
+
+The default implicit confidence threshold is \(0.70\). Evaluator failures, malformed output, weak signals, and non-behavior targets fail closed without learning. `aobserve()` provides the equivalent asynchronous path.
+
+## Idempotency, learning modes, and direct feedback
+
+One decision may receive multiple distinct signals, such as implicit feedback followed by a thumbs-up. The invariant is:
+
+\[
+\boxed{\text{one valid }(\text{decision\_id},\text{idempotency\_key})\rightarrow\text{at most one policy update}}
+\]
 
 ```python
-profile.like("debugging", "patch_first")
-profile.dislike("debugging", "explanation_first")
-profile.prefer("debugging", preferred="patch_first", rejected="explanation_first")
+profile.like(decision, idempotency_key="thumb-up-18")
+profile.dislike(decision, idempotency_key="thumb-down-18")
+
+profile.prefer(
+    "debugging",
+    preferred="patch_first",
+    rejected="explanation_first",
+    idempotency_key="settings-save-91",
+)
 ```
 
-The evaluator separates a message's `target` from its `sentiment`. Targets are `behavior`, `answer_content`, `task_continuation`, `quoted_or_meta`, and `unrelated`. Only `behavior` may have `positive` or `negative` sentiment; every other target uses `none` and leaves the policy unchanged.
+`like()`, `dislike()`, and `observe()` accept `apply=False` for a one-call shadow override. A profile-level mode is clearer for a rollout:
 
-Behavioral feedback maps to a binary reward \(r \in \{-1,+1\}\). AdaptKit computes effective evidence \(e = r \times \text{confidence}\). If \(|e|\) reaches the configurable threshold (default \(0.35\)), only the observed action receives a success or failure. Weak evidence and non-behavior targets leave the policy unchanged.
+```python
+profile = Profile(..., learning_mode="shadow")
+profile.set_learning_mode("active")
+```
 
-`observe()` supports a synchronous judge. `aobserve()` supports an asynchronous judge, or runs a synchronous judge in a worker thread. Both use the same validated update path. Invalid output and evaluator failures return `evaluator_error` without changing the policy.
+Shadow observations are recorded but do not mutate the policy. `apply=True` can explicitly override shadow mode. Pairwise `prefer()` follows the same profile mode and accepts the same override.
+
+## SQLite persistence
+
+```python
+from adaptkit import Profile, SQLiteStore
+
+store = SQLiteStore("adaptkit.db", busy_timeout=1.0)
+profile = Profile(user_id="user-123", actions=["a", "b"], store=store)
+```
+
+`SQLiteStore` is designed for a single host. Observation insertion and its posterior update occur in one transaction, so a crash cannot leave a partial learning update. Threads and local processes can share a database; lock waits default to one second and then raise `StorageBusyError`. The schema has an explicit version and unsupported versions are rejected instead of guessed at.
+
+`InMemoryStore` remains the zero-configuration default and provides atomic thread-level updates, but it does not survive a restart or coordinate multiple processes.
+
+`SQLiteStore` requires a real file path; use `InMemoryStore` instead of SQLite's `:memory:` pseudopath. `delete_user()` removes live rows transactionally, but SQLite files, filesystem snapshots, and backups may retain recoverable historical bytes. Applications needing physical erasure must manage database compaction and backup retention outside AdaptKit.
+
+For account controls:
+
+```python
+structured_export = profile.export_user()
+profile.delete_user()
+```
 
 ## OpenAI Responses API judge
 
-This complete example uses the OpenAI Python SDK, Responses API, Pydantic Structured Outputs, and `store=False`. The SDK remains provider-independent because these imports live in an optional example.
+This integration uses the current OpenAI Python SDK, Responses API Structured Outputs, and `store=False`. OpenAI remains an optional example dependency rather than a core AdaptKit dependency.
 
 ```python
 import os
@@ -90,7 +169,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from adaptkit import LLMFeedbackExtractor, Profile
 
 
-class OpenAIJudgment(BaseModel):
+class Judgment(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     target: Literal[
@@ -98,29 +177,32 @@ class OpenAIJudgment(BaseModel):
     ]
     sentiment: Literal["positive", "negative", "none"]
     confidence: float = Field(ge=0, le=1)
-    reason: str | None
 
 
-load_dotenv(Path(__file__).resolve().parent / ".env")
+load_dotenv(Path(".env"))
+client = OpenAI(
+    api_key=os.environ["OPENAI_API_KEY"],
+    max_retries=0,
+    timeout=60.0,
+)
 model = os.environ["OPENAI_JUDGE_MODEL"]
-client = OpenAI(max_retries=0, timeout=60.0)
 
 
 def judge(messages):
     response = client.responses.parse(
         model=model,
         input=messages,
-        text_format=OpenAIJudgment,
+        text_format=Judgment,
         store=False,
         max_output_tokens=800,
         reasoning={"effort": "low"},
     )
     if response.output_parsed is None:
-        raise RuntimeError("OpenAI response contained no parsed event")
-    judgment = response.output_parsed
-    if (judgment.target == "behavior") != (judgment.sentiment != "none"):
-        raise RuntimeError("OpenAI response contained an inconsistent target and sentiment")
-    return {**judgment.model_dump(), "source": "implicit"}
+        raise RuntimeError("judge returned no parsed output")
+    result = response.output_parsed
+    if (result.target == "behavior") != (result.sentiment != "none"):
+        raise RuntimeError("inconsistent target and sentiment")
+    return {**result.model_dump(), "source": "implicit"}
 
 
 profile = Profile(
@@ -130,65 +212,97 @@ profile = Profile(
 )
 ```
 
-The runnable version is [`examples/openai_judge.py`](examples/openai_judge.py).
+See the runnable [`examples/openai_judge.py`](examples/openai_judge.py).
+
+## Try personalization end to end
+
+The interactive playground shows every selected action, mapped instruction, policy version, and Beta posterior.
+
+```bash
+PYTHONPATH=. python examples/interactive_personalization.py
+```
+
+Offline mode is deterministic and free. Try a prompt, then respond with “Please put the fix first,” inspect `/state`, add `/feedback up`, switch `/mode shadow`, or use `/delete-user`. State persists in the ignored `.adaptkit-playground.db` file.
+
+Real mode uses the models configured in `.env` and incurs API cost:
+
+```bash
+PYTHONPATH=. python examples/interactive_personalization.py --real
+```
+
+The first turn makes one generation request. Each later conversational turn judges the prior interaction and then generates a response, so it normally makes two requests. Both OpenAI calls use `store=False`.
 
 ## Privacy boundaries
 
-AdaptKit's in-memory store retains only numeric learner state. It does not persist prompts, agent responses, user follow-ups, API keys, or evaluator reasoning. Your application still supplies conversation text to the configured judge and receives the returned event, so application logs and custom storage remain your responsibility.
+AdaptKit's built-in stores persist only structured learning data: user IDs, contexts, action keys, policy versions, Beta parameters, decision metadata, idempotency keys, and classification labels. They do not persist prompts, model responses, follow-up text, evaluator reasons, system instructions, or API keys. Conversation text exists in application memory while an evaluator call is made, and your own logs or surrounding application may store it.
 
-A remote judge receives the interaction text. The OpenAI example sets `store=False`, which disables Responses API application-state storage for the request. This setting does not by itself guarantee zero provider retention: OpenAI's abuse-monitoring logs may retain API content for up to 30 days unless the organization has approved retention controls. Review the provider's current policy before sending sensitive data. See OpenAI's [Responses API reference](https://developers.openai.com/api/reference/python/resources/responses/methods/create) and [API data controls](https://platform.openai.com/docs/models/default-usage-policies-by-endpoint).
+Provider privacy is a separate boundary. A remote judge receives the interaction text you send. In the OpenAI examples, `store=False` disables Responses API application-state storage for those requests, but it is not a promise of zero provider retention; abuse-monitoring retention and organization-specific controls are governed by OpenAI's current data policy. Review the [Responses API reference](https://developers.openai.com/api/reference/cli/resources/responses/methods/create) and [OpenAI API data controls](https://platform.openai.com/docs/guides/your-data) before sending sensitive content.
 
 ## Benchmarks
 
-Run the deterministic offline benchmarks:
+Run the deterministic offline checks:
 
 ```bash
 PYTHONPATH=. python benchmarks/bandit_benchmark.py
 PYTHONPATH=. python benchmarks/evaluator_benchmark.py
 ```
 
-The bandit benchmark compares Random and Thompson Sampling using average reward, cumulative reward, expected regret, and optimal-action selection rate.
+The bandit simulation checks whether Thompson Sampling learns a synthetic preference. The deterministic evaluator uses hand-written keyword rules over 28 labeled examples. It is a pipeline smoke test for schema validation and metric calculation—not evidence of real LLM accuracy.
 
-The deterministic evaluator benchmark uses hand-written keyword rules over 28 labeled examples. It is a pipeline smoke test for schema validation and metric calculation. Its score is not evidence of real LLM evaluator accuracy.
-
-To make exactly one bounded OpenAI request over the 28 base examples plus 10 adversarial examples, run:
+The opt-in real benchmark evaluates 28 base and 18 adversarial examples covering paraphrases, indirect feedback, quoted feedback, ambiguous continuation, polite corrections, praise followed by correction, historical references, and prompt injection:
 
 ```bash
-PYTHONPATH=. python benchmarks/openai_evaluator_benchmark.py
+PYTHONPATH=. python benchmarks/openai_evaluator_benchmark.py --runs 1 --batch-size 1
 ```
 
-The adversarial cases cover paraphrases, indirect feedback, quoted feedback, ambiguous continuation, and prompt-injection attempts. The summary contains the model, aggregate and category metrics, token usage, request count, example count, and label-only failure diagnostics. It never includes interaction text. It is saved separately to `artifacts/real_evaluator_summary.json`. This paid, nondeterministic benchmark is opt-in and is not part of CI.
+`--runs` is bounded to \(1\)–\(5\) and `--batch-size` to \(1\)–\(46\). Batch size \(1\) makes \(46\) paid calls but most closely matches production; the cheaper default of \(10\) makes five calls per run and is useful as a pipeline diagnostic. The separate `artifacts/real_evaluator_summary.json` reports the model, example count, detection accuracy, behavior precision/recall, direction accuracy, false-direction update rate, false-positive rate, invalid outputs, category metrics, and token usage. Its diagnostics contain labels and example IDs only, never request text. This nondeterministic benchmark is intentionally excluded from CI.
 
-The recorded `gpt-5-nano-2025-08-07` run produced:
+The recorded deployment-shaped `gpt-5-nano-2025-08-07` run produced:
 
 | Metric | Result |
 | --- | ---: |
-| Examples | 38 |
-| Feedback-detection accuracy | 97.4% |
-| Target accuracy | 76.3% |
-| Direction accuracy | 81.2% |
-| False-positive rate | 0.0% |
-| Invalid outputs | 0 |
-| Input tokens | 2,545 |
-| Output tokens | 2,235 |
+| Examples | \(46\) |
+| Feedback-detection accuracy | \(93.5\%\) |
+| Behavior precision | \(91.7\%\) |
+| Behavior recall | \(100.0\%\) |
+| Direction accuracy | \(100.0\%\) |
+| False-direction update rate | \(0.0\%\) |
+| Raw false-positive rate | \(8.3\%\) |
+| False-positive learning rate at \(0.70\) | \(0.0\%\) |
+| Invalid outputs | \(1\) |
+| Requests | \(46\) |
+| Total tokens | \(34{,}322\) |
 
-This is a small diagnostic set, not a production accuracy claim. The target split eliminated false-positive learning updates in this run. Most fine-grained target errors were disagreements among non-behavior classes and therefore would not update the learner. The main remaining risk was preference correction: Nano missed one behavioral correction and labeled two requests for an alternative behavior as positive rather than negative toward the selected action. Applications should monitor evaluator quality on representative interactions and keep conservative update thresholds.
+The two false behavioral classifications had confidences \(0.62\) and \(0.65\), so neither passes the default \(0.70\) learning threshold. The invalid output also fails closed. Fine-grained target accuracy was \(69.6\%\), but most of those errors were disagreements among non-behavior classes and could not change the learner. This small, prompt-tuned diagnostic set is not a production accuracy claim; begin with shadow learning on representative traffic.
+
+## Production integration checklist
+
+- Keep action keys, user IDs, and context keys stable across deployments.
+- Map every action to behavior that is materially visible in the final output.
+- Use durable, unique event IDs as idempotency keys; do not generate a new key when retrying the same event.
+- Start implicit learning in `shadow` mode and inspect behavior precision and false-direction updates on representative data.
+- Treat evaluator and `StorageBusyError` outcomes as expected operational states and monitor structured lifecycle events with `event_hook`.
+- Set `max_decision_age` when delayed feedback attribution would be unsafe.
+- Test your provider's timeout, retry, retention, and rate-limit behavior independently of AdaptKit.
 
 ## Development
 
 ```bash
-python -m pip install -e '.[dev]'
+python -m pip install -e '.[dev,evaluation]'
 python -m pytest
+mypy adaptkit examples benchmarks tests
+pyright adaptkit examples benchmarks
+python -m build
+python -m twine check dist/*
 ```
 
-CI and the normal test suite are offline and require no API key.
+Normal tests and CI are offline and never require an API key.
 
-## MVP limitations
+## V1 boundaries
 
-- Actions are one mutually exclusive set of strings.
-- Contexts are discrete strings with no cross-context generalization or preference decay.
-- State is in memory and is not retained across processes.
-- Repeated observations are treated as new evidence; there is no interaction deduplication.
-- Feedback is immediate and attributed to the supplied preceding interaction.
-- Thread-level updates are atomic in `InMemoryStore`; coordination across processes is unsupported.
-- Distributed learning, long-horizon rewards, and provider adapters are outside this MVP.
+- One mutually exclusive action set per profile.
+- Discrete contexts with no embeddings, cross-context generalization, or preference decay.
+- Single-host SQLite, not distributed coordination.
+- Immediate feedback attribution to a persisted decision; no long-horizon rewards.
+- No provider adapters and no automatic prompt rewriting.
+- Schema version \(1\) rejects unsupported databases; there is no general migration framework yet.

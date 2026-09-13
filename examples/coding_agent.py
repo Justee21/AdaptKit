@@ -28,15 +28,15 @@ profile = Profile(
 )
 
 prompt = "Why does this loop fail?"
-action = profile.choose("debugging")
-response = coding_agent(prompt, action)
-print(f"[{action}] {response}")
+decision = profile.choose("debugging")
+response = coding_agent(prompt, decision.action)
+print(f"[{decision.action}] {response}")
 
 # In a real agent this arrives on the next conversational turn.
 reaction = "Just show me the fix."
 result = profile.observe(
-    context="debugging",
-    action=action,
+    decision=decision,
+    idempotency_key="turn-1-implicit",
     previous_prompt=prompt,
     previous_response=response,
     user_message=reaction,

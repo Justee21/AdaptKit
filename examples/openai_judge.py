@@ -17,9 +17,15 @@ class OpenAIJudgment(BaseModel):
 
     target: Literal[
         "behavior", "answer_content", "task_continuation", "quoted_or_meta", "unrelated"
-    ]
-    sentiment: Literal["positive", "negative", "none"]
-    confidence: float = Field(ge=0, le=1)
+    ] = Field(description="What the latest user message is primarily doing.")
+    sentiment: Literal["positive", "negative", "none"] = Field(
+        description=(
+            "Sentiment toward the selected action, not toward a requested replacement."
+        )
+    )
+    confidence: float = Field(
+        ge=0, le=1, description="Confidence that target and sentiment are both correct."
+    )
     reason: str | None
 
 
@@ -61,9 +67,10 @@ def main() -> None:
         actions=["patch_first", "explanation_first"],
         evaluator=LLMFeedbackExtractor(judge=judge),
     )
+    decision = profile.choose("debugging")
     result = profile.observe(
-        context="debugging",
-        action="explanation_first",
+        decision=decision,
+        idempotency_key="turn-1-implicit",
         previous_prompt="Why does this function fail?",
         previous_response="Here is a detailed explanation followed by the change.",
         user_message="Can you lead with the fix next time?",

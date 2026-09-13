@@ -13,7 +13,7 @@
     "random": {
       "average_reward": 0.54696,
       "cumulative_reward": 273.48,
-      "cumulative_regret": 175.09799999999967,
+      "cumulative_regret": 175.0979999999996,
       "optimal_action_rate": 0.49972000000000005
     },
     "thompson": {
