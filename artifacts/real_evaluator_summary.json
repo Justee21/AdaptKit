@@ -5,15 +5,17 @@
   "example_count": 38,
   "metrics": {
     "examples": 38,
-    "feedback_detection_accuracy": 0.9210526315789473,
-    "direction_accuracy": 0.9375,
-    "false_positive_rate": 0.13636363636363635,
+    "feedback_detection_accuracy": 0.9736842105263158,
+    "target_accuracy": 0.7631578947368421,
+    "direction_accuracy": 0.8125,
+    "false_positive_rate": 0.0,
     "invalid_outputs": 0
   },
   "metrics_by_category": {
     "clear_positive_feedback": {
       "examples": 4,
       "feedback_detection_accuracy": 1.0,
+      "target_accuracy": 1.0,
       "direction_accuracy": 1.0,
       "false_positive_rate": null,
       "invalid_outputs": 0
@@ -21,27 +23,31 @@
     "clear_negative_feedback": {
       "examples": 4,
       "feedback_detection_accuracy": 1.0,
+      "target_accuracy": 1.0,
       "direction_accuracy": 1.0,
       "false_positive_rate": null,
       "invalid_outputs": 0
     },
     "preference_correction": {
       "examples": 4,
-      "feedback_detection_accuracy": 1.0,
-      "direction_accuracy": 0.75,
+      "feedback_detection_accuracy": 0.75,
+      "target_accuracy": 0.75,
+      "direction_accuracy": 0.25,
       "false_positive_rate": null,
       "invalid_outputs": 0
     },
     "ordinary_continuation": {
       "examples": 4,
-      "feedback_detection_accuracy": 0.75,
+      "feedback_detection_accuracy": 1.0,
+      "target_accuracy": 1.0,
       "direction_accuracy": null,
-      "false_positive_rate": 0.25,
+      "false_positive_rate": 0.0,
       "invalid_outputs": 0
     },
     "topic_change": {
       "examples": 4,
       "feedback_detection_accuracy": 1.0,
+      "target_accuracy": 0.5,
       "direction_accuracy": null,
       "false_positive_rate": 0.0,
       "invalid_outputs": 0
@@ -49,6 +55,7 @@
     "unrelated_factual_correction": {
       "examples": 4,
       "feedback_detection_accuracy": 1.0,
+      "target_accuracy": 1.0,
       "direction_accuracy": null,
       "false_positive_rate": 0.0,
       "invalid_outputs": 0
@@ -56,6 +63,7 @@
     "ambiguous_message": {
       "examples": 4,
       "feedback_detection_accuracy": 1.0,
+      "target_accuracy": 0.0,
       "direction_accuracy": null,
       "false_positive_rate": 0.0,
       "invalid_outputs": 0
@@ -63,6 +71,7 @@
     "paraphrase": {
       "examples": 2,
       "feedback_detection_accuracy": 1.0,
+      "target_accuracy": 1.0,
       "direction_accuracy": 1.0,
       "false_positive_rate": null,
       "invalid_outputs": 0
@@ -70,36 +79,152 @@
     "indirect_feedback": {
       "examples": 2,
       "feedback_detection_accuracy": 1.0,
+      "target_accuracy": 1.0,
       "direction_accuracy": 1.0,
       "false_positive_rate": null,
       "invalid_outputs": 0
     },
     "quoted_feedback": {
       "examples": 2,
-      "feedback_detection_accuracy": 0.5,
+      "feedback_detection_accuracy": 1.0,
+      "target_accuracy": 0.0,
       "direction_accuracy": null,
-      "false_positive_rate": 0.5,
+      "false_positive_rate": 0.0,
       "invalid_outputs": 0
     },
     "ambiguous_continuation": {
       "examples": 2,
       "feedback_detection_accuracy": 1.0,
+      "target_accuracy": 1.0,
       "direction_accuracy": null,
       "false_positive_rate": 0.0,
       "invalid_outputs": 0
     },
     "prompt_injection": {
       "examples": 2,
-      "feedback_detection_accuracy": 0.5,
+      "feedback_detection_accuracy": 1.0,
+      "target_accuracy": 1.0,
       "direction_accuracy": null,
-      "false_positive_rate": 0.5,
+      "false_positive_rate": 0.0,
       "invalid_outputs": 0
     }
   },
+  "failure_diagnostics": [
+    {
+      "example_id": "evaluator_examples-08",
+      "category": "preference_correction",
+      "expected_target": "behavior",
+      "expected_sentiment": "negative",
+      "predicted_target": "task_continuation",
+      "predicted_sentiment": "none",
+      "confidence": 0.7,
+      "invalid": false
+    },
+    {
+      "example_id": "evaluator_examples-09",
+      "category": "preference_correction",
+      "expected_target": "behavior",
+      "expected_sentiment": "negative",
+      "predicted_target": "behavior",
+      "predicted_sentiment": "positive",
+      "confidence": 0.8,
+      "invalid": false
+    },
+    {
+      "example_id": "evaluator_examples-11",
+      "category": "preference_correction",
+      "expected_target": "behavior",
+      "expected_sentiment": "negative",
+      "predicted_target": "behavior",
+      "predicted_sentiment": "positive",
+      "confidence": 0.8,
+      "invalid": false
+    },
+    {
+      "example_id": "evaluator_examples-16",
+      "category": "topic_change",
+      "expected_target": "unrelated",
+      "expected_sentiment": "none",
+      "predicted_target": "task_continuation",
+      "predicted_sentiment": "none",
+      "confidence": 0.7,
+      "invalid": false
+    },
+    {
+      "example_id": "evaluator_examples-19",
+      "category": "topic_change",
+      "expected_target": "unrelated",
+      "expected_sentiment": "none",
+      "predicted_target": "task_continuation",
+      "predicted_sentiment": "none",
+      "confidence": 0.7,
+      "invalid": false
+    },
+    {
+      "example_id": "evaluator_examples-24",
+      "category": "ambiguous_message",
+      "expected_target": "unrelated",
+      "expected_sentiment": "none",
+      "predicted_target": "answer_content",
+      "predicted_sentiment": "none",
+      "confidence": 0.7,
+      "invalid": false
+    },
+    {
+      "example_id": "evaluator_examples-25",
+      "category": "ambiguous_message",
+      "expected_target": "unrelated",
+      "expected_sentiment": "none",
+      "predicted_target": "answer_content",
+      "predicted_sentiment": "none",
+      "confidence": 0.7,
+      "invalid": false
+    },
+    {
+      "example_id": "evaluator_examples-26",
+      "category": "ambiguous_message",
+      "expected_target": "unrelated",
+      "expected_sentiment": "none",
+      "predicted_target": "task_continuation",
+      "predicted_sentiment": "none",
+      "confidence": 0.7,
+      "invalid": false
+    },
+    {
+      "example_id": "evaluator_examples-27",
+      "category": "ambiguous_message",
+      "expected_target": "unrelated",
+      "expected_sentiment": "none",
+      "predicted_target": "task_continuation",
+      "predicted_sentiment": "none",
+      "confidence": 0.7,
+      "invalid": false
+    },
+    {
+      "example_id": "evaluator_adversarial_examples-04",
+      "category": "quoted_feedback",
+      "expected_target": "quoted_or_meta",
+      "expected_sentiment": "none",
+      "predicted_target": "task_continuation",
+      "predicted_sentiment": "none",
+      "confidence": 0.7,
+      "invalid": false
+    },
+    {
+      "example_id": "evaluator_adversarial_examples-05",
+      "category": "quoted_feedback",
+      "expected_target": "quoted_or_meta",
+      "expected_sentiment": "none",
+      "predicted_target": "task_continuation",
+      "predicted_sentiment": "none",
+      "confidence": 0.7,
+      "invalid": false
+    }
+  ],
   "usage": {
-    "input_tokens": 2437,
-    "output_tokens": 2366,
-    "total_tokens": 4803
+    "input_tokens": 2545,
+    "output_tokens": 2235,
+    "total_tokens": 4780
   },
   "requests": 1,
   "store": false

@@ -6,7 +6,7 @@ from adaptkit import LLMFeedbackExtractor, Profile
 async def demo_async_judge(messages):
     """Replace this coroutine with an async structured-output provider call."""
     await asyncio.sleep(0)
-    return {"has_feedback": True, "reward": 0.8, "confidence": 0.9}
+    return {"target": "behavior", "sentiment": "positive", "confidence": 0.9}
 
 
 async def main():

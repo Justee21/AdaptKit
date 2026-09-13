@@ -14,37 +14,59 @@ class ObservationStatus(str, Enum):
     EVALUATOR_ERROR = "evaluator_error"
 
 
+class FeedbackTarget(str, Enum):
+    BEHAVIOR = "behavior"
+    ANSWER_CONTENT = "answer_content"
+    TASK_CONTINUATION = "task_continuation"
+    QUOTED_OR_META = "quoted_or_meta"
+    UNRELATED = "unrelated"
+
+
+class FeedbackSentiment(str, Enum):
+    POSITIVE = "positive"
+    NEGATIVE = "negative"
+    NONE = "none"
+
+
 @dataclass(frozen=True, slots=True)
 class PreferenceEvent:
-    has_feedback: bool
-    reward: float | None = None
+    target: FeedbackTarget
+    sentiment: FeedbackSentiment
     confidence: float = 1.0
     source: str = "implicit"
     reason: str | None = None
 
     def __post_init__(self) -> None:
-        if not isinstance(self.has_feedback, bool):
-            raise ValidationError("has_feedback must be a boolean")
+        if not isinstance(self.target, FeedbackTarget):
+            raise ValidationError("target must be a FeedbackTarget")
+        if not isinstance(self.sentiment, FeedbackSentiment):
+            raise ValidationError("sentiment must be a FeedbackSentiment")
+        if self.target is FeedbackTarget.BEHAVIOR:
+            if self.sentiment is FeedbackSentiment.NONE:
+                raise ValidationError("behavior feedback requires positive or negative sentiment")
+        elif self.sentiment is not FeedbackSentiment.NONE:
+            raise ValidationError("non-behavior targets require none sentiment")
+
         if isinstance(self.confidence, bool) or not isinstance(self.confidence, (int, float)):
             raise ValidationError("confidence must be a number")
         if not math.isfinite(self.confidence) or not 0 <= self.confidence <= 1:
             raise ValidationError("confidence must be finite and within [0, 1]")
         object.__setattr__(self, "confidence", float(self.confidence))
 
-        if not self.has_feedback:
-            if self.reward is not None:
-                raise ValidationError("reward must be omitted when has_feedback is false")
-        else:
-            if isinstance(self.reward, bool) or not isinstance(self.reward, (int, float)):
-                raise ValidationError("reward must be a number when has_feedback is true")
-            if not math.isfinite(self.reward) or not -1 <= self.reward <= 1:
-                raise ValidationError("reward must be finite and within [-1, 1]")
-            object.__setattr__(self, "reward", float(self.reward))
-
         if not isinstance(self.source, str) or not self.source.strip():
             raise ValidationError("source must be a non-empty string")
         if self.reason is not None and not isinstance(self.reason, str):
             raise ValidationError("reason must be a string or None")
+
+    @property
+    def has_feedback(self) -> bool:
+        return self.target is FeedbackTarget.BEHAVIOR
+
+    @property
+    def reward(self) -> float | None:
+        if self.target is not FeedbackTarget.BEHAVIOR:
+            return None
+        return 1.0 if self.sentiment is FeedbackSentiment.POSITIVE else -1.0
 
 
 @dataclass(frozen=True, slots=True)

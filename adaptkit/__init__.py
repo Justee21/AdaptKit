@@ -1,4 +1,10 @@
-from .events import ObservationResult, ObservationStatus, PreferenceEvent
+from .events import (
+    FeedbackSentiment,
+    FeedbackTarget,
+    ObservationResult,
+    ObservationStatus,
+    PreferenceEvent,
+)
 from .exceptions import AdaptKitError, ConfigurationError, ValidationError
 from .feedback import FeedbackExtractor, LLMFeedbackExtractor
 from .profile import Profile
@@ -8,6 +14,8 @@ __all__ = [
     "AdaptKitError",
     "ConfigurationError",
     "FeedbackExtractor",
+    "FeedbackSentiment",
+    "FeedbackTarget",
     "InMemoryStore",
     "LLMFeedbackExtractor",
     "ObservationResult",

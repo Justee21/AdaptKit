@@ -15,7 +15,10 @@ from adaptkit import LLMFeedbackExtractor, Profile
 class OpenAIJudgment(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    label: Literal["positive", "negative", "none"]
+    target: Literal[
+        "behavior", "answer_content", "task_continuation", "quoted_or_meta", "unrelated"
+    ]
+    sentiment: Literal["positive", "negative", "none"]
     confidence: float = Field(ge=0, le=1)
     reason: str | None
 
@@ -44,14 +47,9 @@ def build_openai_judge() -> tuple[Callable[[list[dict[str, str]]], dict[str, Any
         if response.output_parsed is None:
             raise RuntimeError("OpenAI response did not contain a parsed preference event")
         judgment = response.output_parsed
-        reward = 1.0 if judgment.label == "positive" else -1.0 if judgment.label == "negative" else None
-        return {
-            "has_feedback": judgment.label != "none",
-            "reward": reward,
-            "confidence": judgment.confidence,
-            "source": "implicit",
-            "reason": judgment.reason,
-        }
+        if (judgment.target == "behavior") != (judgment.sentiment != "none"):
+            raise RuntimeError("OpenAI response contained an inconsistent target and sentiment")
+        return {**judgment.model_dump(), "source": "implicit"}
 
     return judge, model
 

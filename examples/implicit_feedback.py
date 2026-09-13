@@ -8,12 +8,12 @@ def demo_judge(messages):
     interaction = json.loads(messages[-1]["content"].split("\n", 1)[1])
     if "just show me" in interaction["latest_user_message"].lower():
         return {
-            "has_feedback": True,
-            "reward": -0.9,
+            "target": "behavior",
+            "sentiment": "negative",
             "confidence": 0.95,
             "reason": "The user requested a more direct response.",
         }
-    return {"has_feedback": False}
+    return {"target": "task_continuation", "sentiment": "none"}
 
 
 profile = Profile(

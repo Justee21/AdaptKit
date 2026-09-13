@@ -40,7 +40,7 @@ from adaptkit import LLMFeedbackExtractor, Profile
 
 def judge(messages):
     # Call any provider here and return its validated structured output.
-    return {"has_feedback": True, "reward": -0.9, "confidence": 0.95}
+    return {"target": "behavior", "sentiment": "negative", "confidence": 0.95}
 
 profile = Profile(
     user_id="user-123",
@@ -68,7 +68,9 @@ profile.dislike("debugging", "explanation_first")
 profile.prefer("debugging", preferred="patch_first", rejected="explanation_first")
 ```
 
-For implicit feedback, AdaptKit computes \(e = \text{reward} \times \text{confidence}\). If \(e\) reaches the configurable threshold (default \(0.35\)), only the observed action receives a success or failure. Weak evidence and `has_feedback=False` leave the policy unchanged.
+The evaluator separates a message's `target` from its `sentiment`. Targets are `behavior`, `answer_content`, `task_continuation`, `quoted_or_meta`, and `unrelated`. Only `behavior` may have `positive` or `negative` sentiment; every other target uses `none` and leaves the policy unchanged.
+
+Behavioral feedback maps to a binary reward \(r \in \{-1,+1\}\). AdaptKit computes effective evidence \(e = r \times \text{confidence}\). If \(|e|\) reaches the configurable threshold (default \(0.35\)), only the observed action receives a success or failure. Weak evidence and non-behavior targets leave the policy unchanged.
 
 `observe()` supports a synchronous judge. `aobserve()` supports an asynchronous judge, or runs a synchronous judge in a worker thread. Both use the same validated update path. Invalid output and evaluator failures return `evaluator_error` without changing the policy.
 
@@ -91,7 +93,10 @@ from adaptkit import LLMFeedbackExtractor, Profile
 class OpenAIJudgment(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    label: Literal["positive", "negative", "none"]
+    target: Literal[
+        "behavior", "answer_content", "task_continuation", "quoted_or_meta", "unrelated"
+    ]
+    sentiment: Literal["positive", "negative", "none"]
     confidence: float = Field(ge=0, le=1)
     reason: str | None
 
@@ -113,18 +118,9 @@ def judge(messages):
     if response.output_parsed is None:
         raise RuntimeError("OpenAI response contained no parsed event")
     judgment = response.output_parsed
-    reward = (
-        1.0 if judgment.label == "positive"
-        else -1.0 if judgment.label == "negative"
-        else None
-    )
-    return {
-        "has_feedback": judgment.label != "none",
-        "reward": reward,
-        "confidence": judgment.confidence,
-        "source": "implicit",
-        "reason": judgment.reason,
-    }
+    if (judgment.target == "behavior") != (judgment.sentiment != "none"):
+        raise RuntimeError("OpenAI response contained an inconsistent target and sentiment")
+    return {**judgment.model_dump(), "source": "implicit"}
 
 
 profile = Profile(
@@ -161,19 +157,22 @@ To make exactly one bounded OpenAI request over the 28 base examples plus 10 adv
 PYTHONPATH=. python benchmarks/openai_evaluator_benchmark.py
 ```
 
-The adversarial cases cover paraphrases, indirect feedback, quoted feedback, ambiguous continuation, and prompt-injection attempts. The summary contains only the model, aggregate metrics, token usage, request count, and example count; it is saved separately to `artifacts/real_evaluator_summary.json`. This paid, nondeterministic benchmark is opt-in and is not part of CI.
+The adversarial cases cover paraphrases, indirect feedback, quoted feedback, ambiguous continuation, and prompt-injection attempts. The summary contains the model, aggregate and category metrics, token usage, request count, example count, and label-only failure diagnostics. It never includes interaction text. It is saved separately to `artifacts/real_evaluator_summary.json`. This paid, nondeterministic benchmark is opt-in and is not part of CI.
 
 The recorded `gpt-5-nano-2025-08-07` run produced:
 
 | Metric | Result |
 | --- | ---: |
 | Examples | 38 |
-| Feedback-detection accuracy | 92.1% |
-| Direction accuracy | 93.8% |
-| False-positive rate | 13.6% |
+| Feedback-detection accuracy | 97.4% |
+| Target accuracy | 76.3% |
+| Direction accuracy | 81.2% |
+| False-positive rate | 0.0% |
 | Invalid outputs | 0 |
+| Input tokens | 2,545 |
+| Output tokens | 2,235 |
 
-This is a small diagnostic set, not a production accuracy claim. Its three false positives were in ordinary continuation, quoted feedback, and prompt-injection categories. Applications should monitor evaluator quality on representative interactions and keep conservative update thresholds.
+This is a small diagnostic set, not a production accuracy claim. The target split eliminated false-positive learning updates in this run. Most fine-grained target errors were disagreements among non-behavior classes and therefore would not update the learner. The main remaining risk was preference correction: Nano missed one behavioral correction and labeled two requests for an alternative behavior as positive rather than negative toward the selected action. Applications should monitor evaluator quality on representative interactions and keep conservative update thresholds.
 
 ## Development
 

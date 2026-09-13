@@ -8,10 +8,10 @@ def judge(messages):
     interaction = json.loads(messages[-1]["content"].split("\n", 1)[1])
     latest = interaction["latest_user_message"].lower()
     if "show me the fix" in latest:
-        return {"has_feedback": True, "reward": -1, "confidence": 0.95}
+        return {"target": "behavior", "sentiment": "negative", "confidence": 0.95}
     if "exactly" in latest or "thanks" in latest:
-        return {"has_feedback": True, "reward": 1, "confidence": 0.9}
-    return {"has_feedback": False}
+        return {"target": "behavior", "sentiment": "positive", "confidence": 0.9}
+    return {"target": "task_continuation", "sentiment": "none"}
 
 
 def coding_agent(prompt: str, strategy: str) -> str:

@@ -26,10 +26,22 @@ def conservative_rules(messages: list[dict[str, str]]) -> dict[str, Any]:
         "act immediately",
     )
     if any(phrase in message for phrase in positive):
-        return {"has_feedback": True, "reward": 1.0, "confidence": 0.9}
+        return {"target": "behavior", "sentiment": "positive", "confidence": 0.9}
     if any(phrase in message for phrase in negative):
-        return {"has_feedback": True, "reward": -1.0, "confidence": 0.9}
-    return {"has_feedback": False}
+        return {"target": "behavior", "sentiment": "negative", "confidence": 0.9}
+    if any(
+        phrase in message
+        for phrase in ("weather tomorrow", "now help me", "let's work on", "deployment checklist")
+    ):
+        return {"target": "unrelated", "sentiment": "none"}
+    if any(
+        phrase in message
+        for phrase in ("actually, that feature", "incident was", "it uses put", "total should")
+    ):
+        return {"target": "answer_content", "sentiment": "none"}
+    if message.endswith("?"):
+        return {"target": "task_continuation", "sentiment": "none"}
+    return {"target": "unrelated", "sentiment": "none"}
 
 
 def load_judge(spec: str | None) -> tuple[Callable, str]:
@@ -48,6 +60,7 @@ def score(expected: list[dict[str, Any]], predictions: list[dict[str, Any]]) -> 
     if len(expected) != len(predictions) or not expected:
         raise ValueError("expected and predictions must have the same nonzero length")
     detection_correct = 0
+    target_correct = 0
     feedback_total = 0
     direction_correct = 0
     non_feedback_total = 0
@@ -62,10 +75,11 @@ def score(expected: list[dict[str, Any]], predictions: list[dict[str, Any]]) -> 
             else:
                 non_feedback_total += 1
             continue
-        predicted_feedback = prediction["has_feedback"]
-        reward = prediction.get("reward")
-        predicted_direction = "positive" if reward is not None and reward > 0 else "negative" if reward is not None and reward < 0 else "none"
+        target = prediction["target"]
+        predicted_feedback = target == "behavior"
+        predicted_direction = prediction["sentiment"]
         detection_correct += predicted_feedback == expected_feedback
+        target_correct += target == row["expected_target"]
         if expected_feedback:
             feedback_total += 1
             direction_correct += predicted_feedback and predicted_direction == row["expected_direction"]
@@ -75,6 +89,7 @@ def score(expected: list[dict[str, Any]], predictions: list[dict[str, Any]]) -> 
     return {
         "examples": len(expected),
         "feedback_detection_accuracy": detection_correct / len(expected),
+        "target_accuracy": target_correct / len(expected),
         "direction_accuracy": direction_correct / feedback_total,
         "false_positive_rate": false_positives / non_feedback_total,
         "invalid_outputs": invalid,
@@ -103,7 +118,11 @@ def main() -> None:
                 user_message=row["next_message"],
             )
             predictions.append(
-                {"has_feedback": event.has_feedback, "reward": event.reward, "confidence": event.confidence}
+                {
+                    "target": event.target.value,
+                    "sentiment": event.sentiment.value,
+                    "confidence": event.confidence,
+                }
             )
         except Exception as exc:
             predictions.append({"invalid": True, "error": f"{type(exc).__name__}: {exc}"})

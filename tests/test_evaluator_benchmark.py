@@ -23,6 +23,7 @@ class EvaluatorBenchmarkTests(unittest.TestCase):
                 "ambiguous_message",
             },
         )
+        self.assertTrue(all("expected_target" in row for row in rows))
 
     def test_adversarial_dataset_has_required_coverage(self):
         path = Path(__file__).parents[1] / "benchmarks/data/evaluator_adversarial_examples.json"
@@ -38,24 +39,26 @@ class EvaluatorBenchmarkTests(unittest.TestCase):
                 "prompt_injection",
             },
         )
+        self.assertTrue(all("expected_target" in row for row in rows))
 
     def test_score_calculation(self):
         expected = [
-            {"expected_has_feedback": True, "expected_direction": "positive"},
-            {"expected_has_feedback": True, "expected_direction": "negative"},
-            {"expected_has_feedback": False, "expected_direction": "none"},
-            {"expected_has_feedback": False, "expected_direction": "none"},
+            {"expected_has_feedback": True, "expected_target": "behavior", "expected_direction": "positive"},
+            {"expected_has_feedback": True, "expected_target": "behavior", "expected_direction": "negative"},
+            {"expected_has_feedback": False, "expected_target": "task_continuation", "expected_direction": "none"},
+            {"expected_has_feedback": False, "expected_target": "answer_content", "expected_direction": "none"},
         ]
         predictions = [
-            {"has_feedback": True, "reward": 1},
-            {"has_feedback": True, "reward": 1},
-            {"has_feedback": True, "reward": -1},
-            {"has_feedback": False, "reward": None},
+            {"target": "behavior", "sentiment": "positive"},
+            {"target": "behavior", "sentiment": "positive"},
+            {"target": "behavior", "sentiment": "negative"},
+            {"target": "answer_content", "sentiment": "none"},
         ]
         result = score(expected, predictions)
         self.assertEqual(result["feedback_detection_accuracy"], 0.75)
         self.assertEqual(result["direction_accuracy"], 0.5)
         self.assertEqual(result["false_positive_rate"], 0.5)
+        self.assertEqual(result["target_accuracy"], 0.75)
 
 
 if __name__ == "__main__":

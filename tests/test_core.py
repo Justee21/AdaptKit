@@ -7,6 +7,8 @@ from typing import cast
 
 from adaptkit import (
     ConfigurationError,
+    FeedbackSentiment,
+    FeedbackTarget,
     FeedbackExtractor,
     InMemoryStore,
     LLMFeedbackExtractor,
@@ -95,10 +97,10 @@ class CoreTests(unittest.TestCase):
     def test_no_feedback_and_threshold_boundaries(self):
         outputs = iter(
             [
-                {"has_feedback": False},
-                {"has_feedback": True, "reward": 0.5, "confidence": 0.69},
-                {"has_feedback": True, "reward": 0.5, "confidence": 0.7},
-                {"has_feedback": True, "reward": -0.5, "confidence": 0.7},
+                {"target": "task_continuation", "sentiment": "none"},
+                {"target": "behavior", "sentiment": "positive", "confidence": 0.34},
+                {"target": "behavior", "sentiment": "positive", "confidence": 0.35},
+                {"target": "behavior", "sentiment": "negative", "confidence": 0.35},
             ]
         )
         profile = Profile(
@@ -120,17 +122,31 @@ class CoreTests(unittest.TestCase):
         profile = Profile(
             user_id="u",
             actions=["patch_first", "explanation_first"],
-            evaluator=LLMFeedbackExtractor(judge=lambda _: {"has_feedback": True, "reward": 2}),
+            evaluator=LLMFeedbackExtractor(
+                judge=lambda _: {"target": "answer_content", "sentiment": "positive"}
+            ),
         )
         result = profile.observe(**INTERACTION)
         self.assertEqual(result.status, ObservationStatus.EVALUATOR_ERROR)
         self.assertFalse(result.updated)
         self.assertEqual(profile.state(), {})
 
+    def test_pre_v1_feedback_payload_fails_closed(self):
+        profile = Profile(
+            user_id="u",
+            actions=["patch_first", "explanation_first"],
+            evaluator=LLMFeedbackExtractor(
+                judge=lambda _: {"has_feedback": True, "reward": 1}
+            ),
+        )
+        result = profile.observe(**INTERACTION)
+        self.assertEqual(result.status, ObservationStatus.EVALUATOR_ERROR)
+        self.assertEqual(profile.state(), {})
+
     def test_custom_extractor_contract_violation_fails_closed(self):
         class InvalidExtractor(FeedbackExtractor):
             def extract(self, **interaction) -> PreferenceEvent:
-                return cast(PreferenceEvent, {"has_feedback": True, "reward": 1})
+                return cast(PreferenceEvent, {"target": "behavior", "sentiment": "positive"})
 
         profile = Profile(
             user_id="u",
@@ -161,7 +177,11 @@ class CoreTests(unittest.TestCase):
             user_id="u",
             actions=["patch_first", "explanation_first"],
             evaluator=LLMFeedbackExtractor(
-                judge=lambda _: {"has_feedback": True, "reward": 1, "confidence": 1}
+                judge=lambda _: {
+                    "target": "behavior",
+                    "sentiment": "positive",
+                    "confidence": 1,
+                }
             ),
         )
         profile.observe(
@@ -174,7 +194,7 @@ class CoreTests(unittest.TestCase):
         self.assertNotIn(sentinel, repr(profile.state()))
 
     def test_sync_and_async_share_update_semantics(self):
-        event = {"has_feedback": True, "reward": -0.8, "confidence": 0.9}
+        event = {"target": "behavior", "sentiment": "negative", "confidence": 0.9}
         sync_profile = Profile(
             user_id="u",
             actions=["patch_first", "explanation_first"],
@@ -209,11 +229,23 @@ class CoreTests(unittest.TestCase):
 
     def test_event_validation(self):
         with self.assertRaises(ValidationError):
-            PreferenceEvent(has_feedback=False, reward=0)
+            PreferenceEvent(target=FeedbackTarget.BEHAVIOR, sentiment=FeedbackSentiment.NONE)
         with self.assertRaises(ValidationError):
-            PreferenceEvent(has_feedback=True, reward=math.nan)
+            PreferenceEvent(
+                target=FeedbackTarget.ANSWER_CONTENT,
+                sentiment=FeedbackSentiment.POSITIVE,
+            )
         with self.assertRaises(ValidationError):
-            PreferenceEvent(has_feedback=True, reward=1, confidence=math.inf)
+            PreferenceEvent(
+                target=FeedbackTarget.BEHAVIOR,
+                sentiment=FeedbackSentiment.POSITIVE,
+                confidence=math.inf,
+            )
+        with self.assertRaises(ValidationError):
+            PreferenceEvent(
+                target=cast(FeedbackTarget, "behavior"),
+                sentiment=FeedbackSentiment.POSITIVE,
+            )
 
     def test_observation_requires_evaluator(self):
         profile = Profile(user_id="u", actions=["a"])
@@ -228,7 +260,7 @@ class CoreTests(unittest.TestCase):
 
     def test_sync_observation_with_async_only_judge_is_configuration_error(self):
         async def judge(_):
-            return {"has_feedback": False}
+            return {"target": "task_continuation", "sentiment": "none"}
 
         profile = Profile(
             user_id="u",
