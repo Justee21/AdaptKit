@@ -216,13 +216,13 @@ See the runnable [`examples/openai_judge.py`](examples/openai_judge.py).
 
 ## Try personalization end to end
 
-The interactive playground shows every selected action, mapped instruction, policy version, and Beta posterior.
+The interactive playground isolates one preference dimension: `code_first` versus `explanation_first`. Both actions request comparable content and brevity; only the response ordering changes. The playground shows every selected action, mapped instruction, policy version, and Beta posterior.
 
 ```bash
 python -m examples.interactive_personalization
 ```
 
-Offline mode is deterministic and free. Try a prompt, then respond with “Please put the fix first,” inspect `/state`, add `/feedback up`, switch `/mode shadow`, or use `/delete-user`. State persists in the ignored `.adaptkit-playground.db` file.
+Offline mode is deterministic and free. Try a prompt, then respond with “Please put the code first,” inspect `/state`, add `/feedback up`, switch `/mode shadow`, or use `/delete-user`. State persists in the ignored `.adaptkit-playground.db` file.
 
 Real mode uses the models configured in `.env` and incurs API cost:
 

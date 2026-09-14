@@ -11,10 +11,14 @@ from uuid import uuid4
 from adaptkit import LLMFeedbackExtractor, Profile, SQLiteStore
 
 ACTION_INSTRUCTIONS = {
-    "patch_first": "Show the code fix first, then explain briefly.",
-    "explanation_first": "Explain the cause first, then show the code fix.",
+    "code_first": "Present complete code first, then explain the approach briefly.",
+    "explanation_first": "Explain the approach briefly, then present complete code.",
 }
-BASE_INSTRUCTIONS = "You are a concise coding assistant. Follow the selected response behavior."
+BASE_INSTRUCTIONS = (
+    "You are a concise coding assistant. Answer the current request directly. "
+    "Include comparable content and use similar brevity regardless of the selected "
+    "behavior; only the ordering of code and explanation should change."
+)
 
 Generator = Callable[[str, str], tuple[str, dict[str, int | None]]]
 
@@ -23,10 +27,10 @@ def offline_judge(messages: list[dict[str, str]]) -> dict[str, Any]:
     interaction = json.loads(messages[-1]["content"].split("\n", 1)[1])
     message = interaction["latest_user_message"].lower()
     selected = interaction["selected_action"]
-    patch_phrases = ("fix first", "patch first", "code first", "too much explanation")
+    code_phrases = ("fix first", "patch first", "code first", "too much explanation")
     explanation_phrases = ("explain first", "reasoning first", "too terse", "more detail")
-    if any(phrase in message for phrase in patch_phrases):
-        sentiment = "positive" if selected == "patch_first" else "negative"
+    if any(phrase in message for phrase in code_phrases):
+        sentiment = "positive" if selected == "code_first" else "negative"
         return {"target": "behavior", "sentiment": sentiment, "confidence": 0.95}
     if any(phrase in message for phrase in explanation_phrases):
         sentiment = "positive" if selected == "explanation_first" else "negative"
@@ -37,15 +41,15 @@ def offline_judge(messages: list[dict[str, str]]) -> dict[str, Any]:
 
 
 def offline_generate(prompt: str, action: str) -> tuple[str, dict[str, int | None]]:
-    if action == "patch_first":
+    if action == "code_first":
         response = (
-            "Patch first: change the failing branch directly. "
-            f"Brief explanation: this addresses the issue in `{prompt[:50]}`."
+            f"Code first: apply the solution for `{prompt[:50]}`. "
+            "Explanation: this ordering presents the implementation before its rationale."
         )
     else:
         response = (
-            "Explanation first: the failing branch violates the expected invariant. "
-            f"Patch: update the branch handling for `{prompt[:50]}`."
+            "Explanation first: establish the approach before its implementation. "
+            f"Code: apply the solution for `{prompt[:50]}`."
         )
     return response, {"input_tokens": None, "output_tokens": None}
 
