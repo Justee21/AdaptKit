@@ -242,7 +242,23 @@ The first turn makes one generation request. Each later conversational turn judg
 
 The playground keeps up to four user/assistant turns in memory so follow-ups such as “re-explain that” retain conversational context. This text is sent to the configured agent model but is not written to AdaptKit's SQLite store. Type `/quit` before entering the launch command again; launch commands belong at the normal shell prompt, not inside the playground prompt.
 
-The playground uses an implicit-learning threshold of (0.90), calibrated conservatively for its Terra dogfood scenario. AdaptKit's provider-independent `Profile` default remains (0.70); production integrators must benchmark and choose a threshold for their own evaluator, prompt, model, and traffic.
+The playground uses an implicit-learning threshold of $0.90$, calibrated conservatively for its Terra dogfood scenario. AdaptKit's provider-independent `Profile` default remains $0.70$; production integrators must benchmark and choose a threshold for their own evaluator, prompt, model, and traffic.
+
+### Expanded workflow dogfood
+
+The `workflow` scenario more closely resembles a real coding assistant. It learns among four mutually exclusive presentation strategies: a concise direct solution, guided learning, a detailed deep dive, or examples first. Each chosen action is mapped by the application to a complete system instruction and visibly changes the response; the action key itself is not sent as an unexplained label.
+
+```bash
+python -m examples.interactive_personalization \
+  --real \
+  --scenario workflow \
+  --user-id workflow-v1 \
+  --context algorithms
+```
+
+Respond naturally after each answer—for example, “I learn better when you guide me through the reasoning before the complete answer,” or simply continue when the presentation was neutral. Use a new user ID when changing scenarios because the persisted policy's action set must remain stable. Switch contexts with `/context debugging` or `/context architecture` to see independent preferences for the same user.
+
+With $K=4$ actions, Thompson Sampling explores more alternatives and normally needs more observations than the focused $K=2$ ordering test. The headings make adherence easy to inspect, but real personalization should be judged over several turns rather than a single selection.
 
 ## Privacy boundaries
 

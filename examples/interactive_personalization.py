@@ -4,13 +4,21 @@ import argparse
 import json
 import os
 from collections.abc import Callable, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
 from uuid import uuid4
 
 from adaptkit import LLMFeedbackExtractor, Profile, SQLiteStore
 
-ACTION_INSTRUCTIONS = {
+@dataclass(frozen=True)
+class Scenario:
+    actions: dict[str, str]
+    base_instructions: str
+    required_prefixes: dict[str, str] | None = None
+
+
+ORDERING_ACTIONS = {
     "code_first": (
         "Begin immediately with a fenced code block containing the complete solution. "
         "Do not put any heading, sentence, or explanation before that code block. "
@@ -22,32 +30,92 @@ ACTION_INSTRUCTIONS = {
         "fenced code block."
     ),
 }
-BASE_INSTRUCTIONS = (
+ORDERING_BASE_INSTRUCTIONS = (
     "You are a concise coding assistant. Answer the current request directly. "
     "Include comparable content and use similar brevity regardless of the selected "
     "behavior; only the ordering of code and explanation should change."
 )
+
+WORKFLOW_ACTIONS = {
+    "direct_solution": (
+        "Begin with the exact heading 'Direct solution:', then immediately provide the complete "
+        "implementation in a fenced code block. After it, use at most three short bullets for "
+        "essential explanation and complexity. Do not add hints, a walkthrough, a worked example, "
+        "or a deep-dive section."
+    ),
+    "guided_learning": (
+        "Begin with the exact heading 'Guided learning:'. Build intuition with a sequence of "
+        "three concise hints, then provide the complete implementation and complexity. Do not "
+        "start with the finished solution, include an extended deep dive, or require the user to "
+        "reply before receiving the answer."
+    ),
+    "deep_dive": (
+        "Begin with the exact heading 'Deep dive:'. Give a detailed treatment of the approach, "
+        "alternatives, tradeoffs, edge cases, and complexity, then provide the complete "
+        "implementation. Do not use a hints-first or worked-example-first structure."
+    ),
+    "examples_first": (
+        "Begin with the exact heading 'Examples first:'. Start with a concrete worked example or "
+        "test case before any implementation code, then generalize the insight and provide the "
+        "complete implementation and complexity. Do not use a hints-first or deep-dive structure."
+    ),
+}
+WORKFLOW_BASE_INSTRUCTIONS = (
+    "You are a coding assistant helping a developer solve realistic programming tasks. Answer "
+    "the current request completely and correctly. The selected response strategy controls how "
+    "you present the answer; follow exactly one strategy and do not blend it with the others. "
+    "Treat the selected strategy as authoritative even if conversation history expresses a "
+    "different presentation preference; that feedback is handled separately by the application."
+)
+WORKFLOW_PREFIXES = {
+    "direct_solution": "Direct solution:",
+    "guided_learning": "Guided learning:",
+    "deep_dive": "Deep dive:",
+    "examples_first": "Examples first:",
+}
+
+ORDERING_SCENARIO = Scenario(ORDERING_ACTIONS, ORDERING_BASE_INSTRUCTIONS)
+WORKFLOW_SCENARIO = Scenario(
+    WORKFLOW_ACTIONS,
+    WORKFLOW_BASE_INSTRUCTIONS,
+    WORKFLOW_PREFIXES,
+)
+SCENARIOS = {"ordering": ORDERING_SCENARIO, "workflow": WORKFLOW_SCENARIO}
+
+# Kept as aliases for integrations importing the original two-action example.
+ACTION_INSTRUCTIONS = ORDERING_ACTIONS
+BASE_INSTRUCTIONS = ORDERING_BASE_INSTRUCTIONS
 PLAYGROUND_CONFIDENCE_THRESHOLD = 0.90
 
 Conversation = Sequence[dict[str, str]]
 Generator = Callable[[str, str, Conversation], tuple[str, dict[str, int | None]]]
 
 
-def offline_judge(messages: list[dict[str, str]]) -> dict[str, Any]:
+def _offline_judge(
+    messages: list[dict[str, str]], scenario: Scenario
+) -> dict[str, Any]:
     interaction = json.loads(messages[-1]["content"].split("\n", 1)[1])
     message = interaction["latest_user_message"].lower()
     selected = interaction["selected_action"]
-    code_phrases = ("fix first", "patch first", "code first", "too much explanation")
-    explanation_phrases = ("explain first", "reasoning first", "too terse", "more detail")
-    if any(phrase in message for phrase in code_phrases):
-        sentiment = "positive" if selected == "code_first" else "negative"
-        return {"target": "behavior", "sentiment": sentiment, "confidence": 0.95}
-    if any(phrase in message for phrase in explanation_phrases):
-        sentiment = "positive" if selected == "explanation_first" else "negative"
-        return {"target": "behavior", "sentiment": sentiment, "confidence": 0.95}
+    preferences = {
+        "code_first": ("fix first", "patch first", "code first", "too much explanation"),
+        "explanation_first": ("explain first", "reasoning first", "too terse"),
+        "direct_solution": ("direct answer", "straight to the solution", "concise solution"),
+        "guided_learning": ("guide me", "guided approach", "give me hints", "teach me"),
+        "deep_dive": ("deep dive", "more detail", "tradeoffs", "edge cases"),
+        "examples_first": ("example first", "examples first", "test case first"),
+    }
+    for preferred, phrases in preferences.items():
+        if preferred in scenario.actions and any(phrase in message for phrase in phrases):
+            sentiment = "positive" if selected == preferred else "negative"
+            return {"target": "behavior", "sentiment": sentiment, "confidence": 0.95}
     if any(phrase in message for phrase in ("helpful", "perfect", "exactly", "easier")):
         return {"target": "behavior", "sentiment": "positive", "confidence": 0.9}
     return {"target": "task_continuation", "sentiment": "none", "confidence": 0.9}
+
+
+def offline_judge(messages: list[dict[str, str]]) -> dict[str, Any]:
+    return _offline_judge(messages, ORDERING_SCENARIO)
 
 
 def offline_generate(
@@ -57,20 +125,40 @@ def offline_generate(
 ) -> tuple[str, dict[str, int | None]]:
     del history
     if action == "code_first":
-        response = (
-            f"Code first: apply the solution for `{prompt[:50]}`. "
-            "Explanation: this ordering presents the implementation before its rationale."
-        )
+        response = f"```python\n# Solution for: {prompt[:50]}\n```\nBrief explanation."
     else:
-        response = (
-            "Explanation first: establish the approach before its implementation. "
-            f"Code: apply the solution for `{prompt[:50]}`."
-        )
+        response = f"Brief explanation.\n```python\n# Solution for: {prompt[:50]}\n```"
     return response, {"input_tokens": None, "output_tokens": None}
 
 
-def response_follows_action(response: str, action: str) -> bool:
+def _offline_generate_for(
+    prompt: str, action: str, history: Conversation, scenario: Scenario
+) -> tuple[str, dict[str, int | None]]:
+    if scenario is ORDERING_SCENARIO:
+        return offline_generate(prompt, action, history)
+    del history
+    prefix = cast(dict[str, str], scenario.required_prefixes)[action]
+    if action == "direct_solution":
+        body = f"```python\n# Solution for: {prompt[:50]}\n```\n- Linear local example."
+    else:
+        body = f"A deterministic local example for `{prompt[:50]}`."
+    return (
+        f"{prefix}\n{body}",
+        {"input_tokens": None, "output_tokens": None},
+    )
+
+
+def response_follows_action(
+    response: str, action: str, scenario: Scenario = ORDERING_SCENARIO
+) -> bool:
     stripped = response.lstrip()
+    if scenario.required_prefixes is not None:
+        prefix = scenario.required_prefixes.get(action)
+        if prefix is None or not stripped.casefold().startswith(prefix.casefold()):
+            return False
+        if action == "direct_solution":
+            return stripped[len(prefix) :].lstrip().startswith("```")
+        return True
     first_fence = stripped.find("```")
     if action == "code_first":
         return first_fence == 0
@@ -79,7 +167,9 @@ def response_follows_action(response: str, action: str) -> bool:
     return False
 
 
-def real_components(repo_root: Path) -> tuple[LLMFeedbackExtractor, Generator, str, str]:
+def real_components(
+    repo_root: Path, scenario: Scenario = ORDERING_SCENARIO
+) -> tuple[LLMFeedbackExtractor, Generator, str, str]:
     from dotenv import load_dotenv
     from openai import OpenAI
 
@@ -106,7 +196,9 @@ def real_components(repo_root: Path) -> tuple[LLMFeedbackExtractor, Generator, s
         input_messages = [*history, {"role": "user", "content": prompt}]
         response = client.responses.create(
             model=agent_model,
-            instructions=f"{BASE_INSTRUCTIONS}\n\n{ACTION_INSTRUCTIONS[action]}",
+            instructions=(
+                f"{scenario.base_instructions}\n\n{scenario.actions[action]}"
+            ),
             input=cast(Any, input_messages),
             store=False,
             max_output_tokens=4000,
@@ -123,15 +215,15 @@ def real_components(repo_root: Path) -> tuple[LLMFeedbackExtractor, Generator, s
                 "model returned no visible text "
                 f"(status={response.status}, incomplete_reason={incomplete_reason})"
             )
-        if not response_follows_action(response.output_text, action):
-            raise RuntimeError(f"model did not follow the {action} ordering constraint")
+        if not response_follows_action(response.output_text, action, scenario):
+            raise RuntimeError(f"model did not follow the {action} behavior constraint")
         return response.output_text, {
             "input_tokens": usage.input_tokens if usage else None,
             "output_tokens": usage.output_tokens if usage else None,
         }
 
     return (
-        LLMFeedbackExtractor(judge=judge, action_descriptions=ACTION_INSTRUCTIONS),
+        LLMFeedbackExtractor(judge=judge, action_descriptions=scenario.actions),
         generate,
         agent_model,
         judge_model,
@@ -166,19 +258,31 @@ def main() -> None:
     parser.add_argument("--context", default="debugging")
     parser.add_argument("--database", type=Path, default=Path(".adaptkit-playground.db"))
     parser.add_argument(
+        "--scenario",
+        choices=tuple(SCENARIOS),
+        default="ordering",
+        help="Choose the focused two-action test or realistic four-strategy workflow.",
+    )
+    parser.add_argument(
         "--real",
         action="store_true",
         help="Use configured real generation and judge models; incurs API cost.",
     )
     args = parser.parse_args()
+    scenario = SCENARIOS[args.scenario]
 
     repo_root = Path(__file__).resolve().parents[1]
     if args.real:
-        evaluator, generate, agent_model, judge_model = real_components(repo_root)
+        evaluator, generate, agent_model, judge_model = real_components(repo_root, scenario)
         print(f"Real mode: agent={agent_model} judge={judge_model} store=False")
     else:
-        evaluator = LLMFeedbackExtractor(judge=offline_judge)
-        generate = offline_generate
+        evaluator = LLMFeedbackExtractor(
+            judge=lambda messages: _offline_judge(messages, scenario),
+            action_descriptions=scenario.actions,
+        )
+        generate = lambda prompt, action, history: _offline_generate_for(
+            prompt, action, history, scenario
+        )
         print("Offline mode: deterministic local agent and evaluator")
 
     store = SQLiteStore(args.database)
@@ -188,7 +292,7 @@ def main() -> None:
     def new_profile(user_id: str) -> Profile:
         return Profile(
             user_id=user_id,
-            actions=tuple(ACTION_INSTRUCTIONS),
+            actions=tuple(scenario.actions),
             evaluator=evaluator,
             store=store,
             seed=7,
@@ -202,7 +306,8 @@ def main() -> None:
     conversation_history: list[dict[str, str]] = []
     turn = 0
     print_help()
-    print(f"Actions under test: {', '.join(ACTION_INSTRUCTIONS)}")
+    print(f"Scenario: {args.scenario}")
+    print(f"Actions under test: {', '.join(scenario.actions)}")
     print(f"Implicit learning threshold: {PLAYGROUND_CONFIDENCE_THRESHOLD:.2f}")
 
     while True:
@@ -291,7 +396,7 @@ def main() -> None:
                 )
 
         decision = profile.choose(current_context)
-        instruction = ACTION_INSTRUCTIONS[decision.action]
+        instruction = scenario.actions[decision.action]
         print(f"\nSelected action: {decision.action}")
         print(f"Applied instruction: {instruction}")
         try:
