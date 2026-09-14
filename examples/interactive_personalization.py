@@ -75,9 +75,20 @@ def real_components(repo_root: Path) -> tuple[LLMFeedbackExtractor, Generator, s
             instructions=f"{BASE_INSTRUCTIONS}\n\n{ACTION_INSTRUCTIONS[action]}",
             input=prompt,
             store=False,
-            max_output_tokens=800,
+            max_output_tokens=4000,
+            reasoning={"effort": "low"},
         )
         usage = response.usage
+        if not response.output_text.strip():
+            incomplete_reason = (
+                response.incomplete_details.reason
+                if response.incomplete_details is not None
+                else None
+            )
+            raise RuntimeError(
+                "model returned no visible text "
+                f"(status={response.status}, incomplete_reason={incomplete_reason})"
+            )
         return response.output_text, {
             "input_tokens": usage.input_tokens if usage else None,
             "output_tokens": usage.output_tokens if usage else None,
@@ -227,7 +238,13 @@ def main() -> None:
         instruction = ACTION_INSTRUCTIONS[decision.action]
         print(f"\nSelected action: {decision.action}")
         print(f"Applied instruction: {instruction}")
-        response, usage = generate(raw, decision.action)
+        try:
+            response, usage = generate(raw, decision.action)
+        except Exception as exc:
+            print(f"\nAgent generation failed safely: {type(exc).__name__}: {exc}")
+            print("This decision will not be used as a feedback-learning example.")
+            previous_decision = previous_prompt = previous_response = None
+            continue
         print(f"\nAgent:\n{response}")
         if args.real:
             print(
