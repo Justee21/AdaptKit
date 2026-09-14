@@ -219,7 +219,7 @@ See the runnable [`examples/openai_judge.py`](examples/openai_judge.py).
 The interactive playground shows every selected action, mapped instruction, policy version, and Beta posterior.
 
 ```bash
-PYTHONPATH=. python examples/interactive_personalization.py
+python -m examples.interactive_personalization
 ```
 
 Offline mode is deterministic and free. Try a prompt, then respond with “Please put the fix first,” inspect `/state`, add `/feedback up`, switch `/mode shadow`, or use `/delete-user`. State persists in the ignored `.adaptkit-playground.db` file.
@@ -227,7 +227,7 @@ Offline mode is deterministic and free. Try a prompt, then respond with “Pleas
 Real mode uses the models configured in `.env` and incurs API cost:
 
 ```bash
-PYTHONPATH=. python examples/interactive_personalization.py --real
+python -m examples.interactive_personalization --real
 ```
 
 The first turn makes one generation request. Each later conversational turn judges the prior interaction and then generates a response, so it normally makes two requests. Both OpenAI calls use `store=False`.
