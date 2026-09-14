@@ -110,7 +110,11 @@ class EvaluatorBenchmarkTests(unittest.TestCase):
             output_tokens = 5
             total_tokens = 15
 
-        total = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+        total: dict[str, int | None] = {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+        }
         _add_usage(total, Usage())
         _add_usage(total, Usage())
         self.assertEqual(
@@ -126,6 +130,8 @@ class EvaluatorBenchmarkTests(unittest.TestCase):
         }
         payload = json.loads(benchmark_input([row]).split("\n", 1)[1])
         self.assertEqual(payload["selected_action"], "patch_first")
+        self.assertEqual(payload["selected_action_description"], "patch first")
+        self.assertEqual(payload["action_descriptions"]["patch_first"], "patch first")
         self.assertEqual(payload["latest_user_message"], "message")
         self.assertNotIn("action", payload)
         self.assertNotIn("next_message", payload)

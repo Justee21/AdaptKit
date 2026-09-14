@@ -1,4 +1,5 @@
 import asyncio
+import json
 import math
 import threading
 import unittest
@@ -81,6 +82,32 @@ class CoreTests(unittest.TestCase):
         decision = profile.choose("debugging")
         generated = f"system={instructions[decision.action]}"
         self.assertIn(instructions[decision.action], generated)
+
+    def test_feedback_payload_includes_action_descriptions(self):
+        captured: list[list[dict[str, str]]] = []
+
+        def judge(messages: list[dict[str, str]]) -> dict[str, object]:
+            captured.append(messages)
+            return {"target": "task_continuation", "sentiment": "none"}
+
+        evaluator = LLMFeedbackExtractor(
+            judge=judge,
+            action_descriptions={"a": "Put code first."},
+        )
+        evaluator.extract(
+            actions=("a", "b"),
+            context="ctx",
+            previous_prompt="prompt",
+            action="a",
+            previous_response="response",
+            user_message="continue",
+        )
+        payload = json.loads(captured[0][-1]["content"].split("\n", 1)[1])
+        self.assertEqual(payload["selected_action_description"], "Put code first.")
+        self.assertEqual(payload["action_descriptions"]["b"], "b")
+
+        with self.assertRaises(ConfigurationError):
+            LLMFeedbackExtractor(judge=judge, action_descriptions={"a": ""})
 
     def test_distinct_explicit_signals_can_update_one_decision(self):
         profile = Profile(user_id="u", actions=["a"])

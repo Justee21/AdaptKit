@@ -208,9 +208,17 @@ def judge(messages):
 profile = Profile(
     user_id="user-123",
     actions=["patch_first", "explanation_first"],
-    evaluator=LLMFeedbackExtractor(judge=judge),
+    evaluator=LLMFeedbackExtractor(
+        judge=judge,
+        action_descriptions={
+            "patch_first": "Show the patch before the explanation.",
+            "explanation_first": "Explain before showing the patch.",
+        },
+    ),
 )
 ```
+
+Pass `action_descriptions` whenever action keys alone do not completely describe their behavior. The descriptions are included in the transient evaluator request so sentiment can remain relative to the selected policy action; they are not persisted by AdaptKit.
 
 See the runnable [`examples/openai_judge.py`](examples/openai_judge.py).
 
@@ -231,6 +239,10 @@ python -m examples.interactive_personalization --real
 ```
 
 The first turn makes one generation request. Each later conversational turn judges the prior interaction and then generates a response, so it normally makes two requests. Both OpenAI calls use `store=False`.
+
+The playground keeps up to four user/assistant turns in memory so follow-ups such as “re-explain that” retain conversational context. This text is sent to the configured agent model but is not written to AdaptKit's SQLite store. Type `/quit` before entering the launch command again; launch commands belong at the normal shell prompt, not inside the playground prompt.
+
+The playground uses an implicit-learning threshold of (0.90), calibrated conservatively for its Terra dogfood scenario. AdaptKit's provider-independent `Profile` default remains (0.70); production integrators must benchmark and choose a threshold for their own evaluator, prompt, model, and traffic.
 
 ## Privacy boundaries
 

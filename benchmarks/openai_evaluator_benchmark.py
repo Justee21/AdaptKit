@@ -69,9 +69,14 @@ def benchmark_input(rows: list[dict[str, Any]]) -> str:
     examples = [
         {
             "available_actions": [row["action"], "alternative"],
+            "action_descriptions": {
+                row["action"]: row["action"].replace("_", " "),
+                "alternative": "an alternative response behavior",
+            },
             "context": "benchmark",
             "previous_user_prompt": row["previous_prompt"],
             "selected_action": row["action"],
+            "selected_action_description": row["action"].replace("_", " "),
             "agent_response": row["previous_response"],
             "latest_user_message": row["next_message"],
         }

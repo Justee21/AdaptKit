@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any, cast
 from uuid import uuid4
@@ -11,16 +11,26 @@ from uuid import uuid4
 from adaptkit import LLMFeedbackExtractor, Profile, SQLiteStore
 
 ACTION_INSTRUCTIONS = {
-    "code_first": "Present complete code first, then explain the approach briefly.",
-    "explanation_first": "Explain the approach briefly, then present complete code.",
+    "code_first": (
+        "Begin immediately with a fenced code block containing the complete solution. "
+        "Do not put any heading, sentence, or explanation before that code block. "
+        "After the code block, explain the approach briefly."
+    ),
+    "explanation_first": (
+        "Begin with a brief prose explanation of the approach. Do not show any code "
+        "until that explanation is complete. Then present the complete solution in a "
+        "fenced code block."
+    ),
 }
 BASE_INSTRUCTIONS = (
     "You are a concise coding assistant. Answer the current request directly. "
     "Include comparable content and use similar brevity regardless of the selected "
     "behavior; only the ordering of code and explanation should change."
 )
+PLAYGROUND_CONFIDENCE_THRESHOLD = 0.90
 
-Generator = Callable[[str, str], tuple[str, dict[str, int | None]]]
+Conversation = Sequence[dict[str, str]]
+Generator = Callable[[str, str, Conversation], tuple[str, dict[str, int | None]]]
 
 
 def offline_judge(messages: list[dict[str, str]]) -> dict[str, Any]:
@@ -40,7 +50,12 @@ def offline_judge(messages: list[dict[str, str]]) -> dict[str, Any]:
     return {"target": "task_continuation", "sentiment": "none", "confidence": 0.9}
 
 
-def offline_generate(prompt: str, action: str) -> tuple[str, dict[str, int | None]]:
+def offline_generate(
+    prompt: str,
+    action: str,
+    history: Conversation = (),
+) -> tuple[str, dict[str, int | None]]:
+    del history
     if action == "code_first":
         response = (
             f"Code first: apply the solution for `{prompt[:50]}`. "
@@ -52,6 +67,16 @@ def offline_generate(prompt: str, action: str) -> tuple[str, dict[str, int | Non
             f"Code: apply the solution for `{prompt[:50]}`."
         )
     return response, {"input_tokens": None, "output_tokens": None}
+
+
+def response_follows_action(response: str, action: str) -> bool:
+    stripped = response.lstrip()
+    first_fence = stripped.find("```")
+    if action == "code_first":
+        return first_fence == 0
+    if action == "explanation_first":
+        return first_fence > 0
+    return False
 
 
 def real_components(repo_root: Path) -> tuple[LLMFeedbackExtractor, Generator, str, str]:
@@ -73,11 +98,16 @@ def real_components(repo_root: Path) -> tuple[LLMFeedbackExtractor, Generator, s
     )
     client = OpenAI(api_key=api_key, max_retries=0, timeout=60.0)
 
-    def generate(prompt: str, action: str) -> tuple[str, dict[str, int | None]]:
+    def generate(
+        prompt: str,
+        action: str,
+        history: Conversation,
+    ) -> tuple[str, dict[str, int | None]]:
+        input_messages = [*history, {"role": "user", "content": prompt}]
         response = client.responses.create(
             model=agent_model,
             instructions=f"{BASE_INSTRUCTIONS}\n\n{ACTION_INSTRUCTIONS[action]}",
-            input=prompt,
+            input=cast(Any, input_messages),
             store=False,
             max_output_tokens=4000,
             reasoning={"effort": "low"},
@@ -93,12 +123,19 @@ def real_components(repo_root: Path) -> tuple[LLMFeedbackExtractor, Generator, s
                 "model returned no visible text "
                 f"(status={response.status}, incomplete_reason={incomplete_reason})"
             )
+        if not response_follows_action(response.output_text, action):
+            raise RuntimeError(f"model did not follow the {action} ordering constraint")
         return response.output_text, {
             "input_tokens": usage.input_tokens if usage else None,
             "output_tokens": usage.output_tokens if usage else None,
         }
 
-    return LLMFeedbackExtractor(judge=judge), generate, agent_model, judge_model
+    return (
+        LLMFeedbackExtractor(judge=judge, action_descriptions=ACTION_INSTRUCTIONS),
+        generate,
+        agent_model,
+        judge_model,
+    )
 
 
 def show_policy(profile: Profile, context: str) -> None:
@@ -117,6 +154,10 @@ def print_help() -> None:
         "Commands: /state, /context NAME, /user ID, /mode active|shadow, "
         "/feedback up|down, /export, /delete-user, /quit"
     )
+
+
+def looks_like_launch_command(value: str) -> bool:
+    return "interactive_personalization" in value and "python" in value
 
 
 def main() -> None:
@@ -151,14 +192,18 @@ def main() -> None:
             evaluator=evaluator,
             store=store,
             seed=7,
+            implicit_confidence_threshold=PLAYGROUND_CONFIDENCE_THRESHOLD,
         )
 
     profile = new_profile(current_user)
     previous_decision = None
     previous_prompt = None
     previous_response = None
+    conversation_history: list[dict[str, str]] = []
     turn = 0
     print_help()
+    print(f"Actions under test: {', '.join(ACTION_INSTRUCTIONS)}")
+    print(f"Implicit learning threshold: {PLAYGROUND_CONFIDENCE_THRESHOLD:.2f}")
 
     while True:
         try:
@@ -170,18 +215,24 @@ def main() -> None:
             continue
         if raw == "/quit":
             break
+        if looks_like_launch_command(raw):
+            print("That is a shell command, but you are already inside the playground.")
+            print("Type /quit first, then run the command at your normal shell prompt.")
+            continue
         if raw == "/state":
             show_policy(profile, current_context)
             continue
         if raw.startswith("/context "):
             current_context = raw.split(maxsplit=1)[1].strip()
             previous_decision = previous_prompt = previous_response = None
+            conversation_history.clear()
             show_policy(profile, current_context)
             continue
         if raw.startswith("/user "):
             current_user = raw.split(maxsplit=1)[1].strip()
             profile = new_profile(current_user)
             previous_decision = previous_prompt = previous_response = None
+            conversation_history.clear()
             show_policy(profile, current_context)
             continue
         if raw.startswith("/mode "):
@@ -213,6 +264,7 @@ def main() -> None:
         if raw == "/delete-user":
             profile.delete_user()
             previous_decision = previous_prompt = previous_response = None
+            conversation_history.clear()
             print("Deleted this user's structured AdaptKit data.")
             continue
         if raw.startswith("/"):
@@ -243,7 +295,7 @@ def main() -> None:
         print(f"\nSelected action: {decision.action}")
         print(f"Applied instruction: {instruction}")
         try:
-            response, usage = generate(raw, decision.action)
+            response, usage = generate(raw, decision.action, conversation_history)
         except Exception as exc:
             print(f"\nAgent generation failed safely: {type(exc).__name__}: {exc}")
             print("This decision will not be used as a feedback-learning example.")
@@ -255,6 +307,13 @@ def main() -> None:
                 f"Usage: input={usage['input_tokens']} output={usage['output_tokens']}"
             )
         show_policy(profile, current_context)
+        conversation_history.extend(
+            [
+                {"role": "user", "content": raw},
+                {"role": "assistant", "content": response},
+            ]
+        )
+        del conversation_history[:-8]
         previous_decision = decision
         previous_prompt = raw
         previous_response = response
