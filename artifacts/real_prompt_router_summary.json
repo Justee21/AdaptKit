@@ -1,0 +1,340 @@
+{
+  "benchmark_type": "real_prompt_routing",
+  "status": "completed",
+  "reproducibility": {
+    "generated_at": "2026-09-14T22:14:08Z",
+    "generation_time_source": "artifact_file_mtime",
+    "dataset_sha256": "431cfc4e5602b53542fce6d8b363cd8a14848d5d3c34f41db11c8becdcd9a082",
+    "evaluator_prompt_sha256": "be59f45a5640fbfbfdbed1bf160fa22e91c014fc9d8beccdbf9c885b196c0f56",
+    "split_strategy": "the fixed split field in prompt_routing_examples()"
+  },
+  "model": "gpt-5.6-terra",
+  "example_count": 80,
+  "calibration_example_count": 20,
+  "holdout_example_count": 60,
+  "frozen_routing_threshold": 0.7,
+  "threshold_selection": {
+    "source": "pooled_calibration_partitions_only",
+    "candidate_scores": {
+      "0.70": {
+        "examples": 60,
+        "routing_threshold": 0.7,
+        "explicit_cue_examples": 30,
+        "no_cue_examples": 30,
+        "prompt_cue_routing_accuracy": 1.0,
+        "routed_action_precision": 1.0,
+        "wrong_action_overrides": 0,
+        "wrong_action_override_rate": 0.0,
+        "no_cue_false_override_rate": 0.0,
+        "invalid_outputs": 0
+      },
+      "0.80": {
+        "examples": 60,
+        "routing_threshold": 0.8,
+        "explicit_cue_examples": 30,
+        "no_cue_examples": 30,
+        "prompt_cue_routing_accuracy": 1.0,
+        "routed_action_precision": 1.0,
+        "wrong_action_overrides": 0,
+        "wrong_action_override_rate": 0.0,
+        "no_cue_false_override_rate": 0.0,
+        "invalid_outputs": 0
+      },
+      "0.90": {
+        "examples": 60,
+        "routing_threshold": 0.9,
+        "explicit_cue_examples": 30,
+        "no_cue_examples": 30,
+        "prompt_cue_routing_accuracy": 1.0,
+        "routed_action_precision": 1.0,
+        "wrong_action_overrides": 0,
+        "wrong_action_override_rate": 0.0,
+        "no_cue_false_override_rate": 0.0,
+        "invalid_outputs": 0
+      },
+      "0.95": {
+        "examples": 60,
+        "routing_threshold": 0.95,
+        "explicit_cue_examples": 30,
+        "no_cue_examples": 30,
+        "prompt_cue_routing_accuracy": 1.0,
+        "routed_action_precision": 1.0,
+        "wrong_action_overrides": 0,
+        "wrong_action_override_rate": 0.0,
+        "no_cue_false_override_rate": 0.0,
+        "invalid_outputs": 0
+      }
+    }
+  },
+  "pooled_holdout_confidence_intervals_95": {
+    "prompt_cue_routing_accuracy": {
+      "successes": 88,
+      "total": 90,
+      "lower": 0.9225547331137463,
+      "upper": 0.9938845580136748
+    },
+    "routed_action_precision": {
+      "successes": 88,
+      "total": 88,
+      "lower": 0.9581729333351078,
+      "upper": 0.9999999999999999
+    },
+    "wrong_action_override_rate": {
+      "successes": 0,
+      "total": 90,
+      "lower": 0.0,
+      "upper": 0.04093562556432678
+    },
+    "no_cue_false_override_rate": {
+      "successes": 0,
+      "total": 90,
+      "lower": 0.0,
+      "upper": 0.04093562556432678
+    }
+  },
+  "metrics": {
+    "examples": 60,
+    "routing_threshold": 0.6999999999999998,
+    "explicit_cue_examples": 30.0,
+    "no_cue_examples": 30.0,
+    "prompt_cue_routing_accuracy": 0.9777777777777779,
+    "routed_action_precision": 1.0,
+    "wrong_action_overrides": 0.0,
+    "wrong_action_override_rate": 0.0,
+    "no_cue_false_override_rate": 0.0,
+    "invalid_outputs": 0
+  },
+  "metric_ranges": {
+    "routing_threshold": {
+      "min": 0.7,
+      "max": 0.7
+    },
+    "explicit_cue_examples": {
+      "min": 30.0,
+      "max": 30.0
+    },
+    "no_cue_examples": {
+      "min": 30.0,
+      "max": 30.0
+    },
+    "prompt_cue_routing_accuracy": {
+      "min": 0.9666666666666667,
+      "max": 1.0
+    },
+    "routed_action_precision": {
+      "min": 1.0,
+      "max": 1.0
+    },
+    "wrong_action_overrides": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "wrong_action_override_rate": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "no_cue_false_override_rate": {
+      "min": 0.0,
+      "max": 0.0
+    }
+  },
+  "release_gate": {
+    "basis": "every_run_on_holdout_at_frozen_routing_threshold",
+    "passed": true
+  },
+  "runs_requested": 3,
+  "runs_completed": 3,
+  "run_results": [
+    {
+      "model": "gpt-5.6-terra",
+      "metrics": {
+        "examples": 60,
+        "routing_threshold": 0.7,
+        "explicit_cue_examples": 30,
+        "no_cue_examples": 30,
+        "prompt_cue_routing_accuracy": 1.0,
+        "routed_action_precision": 1.0,
+        "wrong_action_overrides": 0,
+        "wrong_action_override_rate": 0.0,
+        "no_cue_false_override_rate": 0.0,
+        "invalid_outputs": 0
+      },
+      "confidence_intervals_95": {
+        "prompt_cue_routing_accuracy": {
+          "successes": 30,
+          "total": 30,
+          "lower": 0.8864866068260312,
+          "upper": 0.9999999999999999
+        },
+        "routed_action_precision": {
+          "successes": 30,
+          "total": 30,
+          "lower": 0.8864866068260312,
+          "upper": 0.9999999999999999
+        },
+        "wrong_action_override_rate": {
+          "successes": 0,
+          "total": 30,
+          "lower": 0.0,
+          "upper": 0.11351339317396876
+        },
+        "no_cue_false_override_rate": {
+          "successes": 0,
+          "total": 30,
+          "lower": 0.0,
+          "upper": 0.11351339317396876
+        }
+      },
+      "release_gate": {
+        "passed": true,
+        "prompt_cue_routing_accuracy": true,
+        "zero_wrong_action_overrides": true,
+        "no_cue_false_override_rate": true,
+        "invalid_output_rate": true
+      },
+      "failure_diagnostics": [],
+      "request_errors": [],
+      "usage": {
+        "input_tokens": 41219,
+        "output_tokens": 3271,
+        "total_tokens": 44490
+      },
+      "requests": 80
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metrics": {
+        "examples": 60,
+        "routing_threshold": 0.7,
+        "explicit_cue_examples": 30,
+        "no_cue_examples": 30,
+        "prompt_cue_routing_accuracy": 0.9666666666666667,
+        "routed_action_precision": 1.0,
+        "wrong_action_overrides": 0,
+        "wrong_action_override_rate": 0.0,
+        "no_cue_false_override_rate": 0.0,
+        "invalid_outputs": 0
+      },
+      "confidence_intervals_95": {
+        "prompt_cue_routing_accuracy": {
+          "successes": 29,
+          "total": 30,
+          "lower": 0.8332960900859082,
+          "upper": 0.9940914096183874
+        },
+        "routed_action_precision": {
+          "successes": 29,
+          "total": 29,
+          "lower": 0.8830302015002593,
+          "upper": 1.0
+        },
+        "wrong_action_override_rate": {
+          "successes": 0,
+          "total": 30,
+          "lower": 0.0,
+          "upper": 0.11351339317396876
+        },
+        "no_cue_false_override_rate": {
+          "successes": 0,
+          "total": 30,
+          "lower": 0.0,
+          "upper": 0.11351339317396876
+        }
+      },
+      "release_gate": {
+        "passed": true,
+        "prompt_cue_routing_accuracy": true,
+        "zero_wrong_action_overrides": true,
+        "no_cue_false_override_rate": true,
+        "invalid_output_rate": true
+      },
+      "failure_diagnostics": [
+        {
+          "example_id": "prompt-routing-19",
+          "expected_action": "guided_learning",
+          "predicted_action": null,
+          "confidence": 0.99,
+          "invalid": false
+        }
+      ],
+      "request_errors": [],
+      "usage": {
+        "input_tokens": 41219,
+        "output_tokens": 3299,
+        "total_tokens": 44518
+      },
+      "requests": 80
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metrics": {
+        "examples": 60,
+        "routing_threshold": 0.7,
+        "explicit_cue_examples": 30,
+        "no_cue_examples": 30,
+        "prompt_cue_routing_accuracy": 0.9666666666666667,
+        "routed_action_precision": 1.0,
+        "wrong_action_overrides": 0,
+        "wrong_action_override_rate": 0.0,
+        "no_cue_false_override_rate": 0.0,
+        "invalid_outputs": 0
+      },
+      "confidence_intervals_95": {
+        "prompt_cue_routing_accuracy": {
+          "successes": 29,
+          "total": 30,
+          "lower": 0.8332960900859082,
+          "upper": 0.9940914096183874
+        },
+        "routed_action_precision": {
+          "successes": 29,
+          "total": 29,
+          "lower": 0.8830302015002593,
+          "upper": 1.0
+        },
+        "wrong_action_override_rate": {
+          "successes": 0,
+          "total": 30,
+          "lower": 0.0,
+          "upper": 0.11351339317396876
+        },
+        "no_cue_false_override_rate": {
+          "successes": 0,
+          "total": 30,
+          "lower": 0.0,
+          "upper": 0.11351339317396876
+        }
+      },
+      "release_gate": {
+        "passed": true,
+        "prompt_cue_routing_accuracy": true,
+        "zero_wrong_action_overrides": true,
+        "no_cue_false_override_rate": true,
+        "invalid_output_rate": true
+      },
+      "failure_diagnostics": [
+        {
+          "example_id": "prompt-routing-19",
+          "expected_action": "guided_learning",
+          "predicted_action": null,
+          "confidence": 0.99,
+          "invalid": false
+        }
+      ],
+      "request_errors": [],
+      "usage": {
+        "input_tokens": 41219,
+        "output_tokens": 3361,
+        "total_tokens": 44580
+      },
+      "requests": 80
+    }
+  ],
+  "usage": {
+    "input_tokens": 123657,
+    "output_tokens": 9931,
+    "total_tokens": 133588
+  },
+  "requests": 240,
+  "store": false
+}

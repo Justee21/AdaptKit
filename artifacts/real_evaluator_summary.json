@@ -1,40 +1,139 @@
 {
   "benchmark_type": "real_llm",
   "status": "completed",
-  "model": "gpt-5-nano-2025-08-07",
-  "example_count": 46,
+  "reproducibility": {
+    "generated_at": "2026-09-14T22:06:31Z",
+    "generation_time_source": "artifact_file_mtime",
+    "dataset_sha256": "88296f53a7efb13a464d647ca692ae303138b4a3ddbcfc835db3f439d1a81bb7",
+    "evaluator_prompt_sha256": "805512c0f61697b9b3c1f17428dba89a7ea4621b21a92cfcb32e406d47404497",
+    "split_strategy": "calibration when zero-based example index modulo 3 is 0"
+  },
+  "model": "gpt-5.6-terra",
+  "example_count": 120,
+  "calibration_example_count": 40,
+  "holdout_example_count": 80,
+  "frozen_learning_threshold": 0.95,
+  "threshold_selection": {
+    "source": "pooled_calibration_partitions_only",
+    "candidate_scores": {
+      "0.70": {
+        "examples": 120,
+        "learning_threshold": 0.7,
+        "feedback_detection_accuracy": 0.9166666666666666,
+        "behavior_precision": 0.873015873015873,
+        "behavior_recall": 0.9649122807017544,
+        "applied_behavior_precision": 0.9322033898305084,
+        "applied_behavior_recall": 0.9649122807017544,
+        "target_accuracy": 0.7583333333333333,
+        "direction_accuracy": 0.9122807017543859,
+        "false_direction_update_rate": 0.047619047619047616,
+        "false_positive_rate": 0.12698412698412698,
+        "false_positive_learning_rate": 0.06349206349206349,
+        "false_direction_learning_rate": 0.05084745762711865,
+        "harmful_learning_updates": 7,
+        "invalid_outputs": 0
+      },
+      "0.80": {
+        "examples": 120,
+        "learning_threshold": 0.8,
+        "feedback_detection_accuracy": 0.9166666666666666,
+        "behavior_precision": 0.873015873015873,
+        "behavior_recall": 0.9649122807017544,
+        "applied_behavior_precision": 0.9642857142857143,
+        "applied_behavior_recall": 0.9473684210526315,
+        "target_accuracy": 0.7583333333333333,
+        "direction_accuracy": 0.9122807017543859,
+        "false_direction_update_rate": 0.047619047619047616,
+        "false_positive_rate": 0.12698412698412698,
+        "false_positive_learning_rate": 0.031746031746031744,
+        "false_direction_learning_rate": 0.05357142857142857,
+        "harmful_learning_updates": 5,
+        "invalid_outputs": 0
+      },
+      "0.90": {
+        "examples": 120,
+        "learning_threshold": 0.9,
+        "feedback_detection_accuracy": 0.9166666666666666,
+        "behavior_precision": 0.873015873015873,
+        "behavior_recall": 0.9649122807017544,
+        "applied_behavior_precision": 1.0,
+        "applied_behavior_recall": 0.8771929824561403,
+        "target_accuracy": 0.7583333333333333,
+        "direction_accuracy": 0.9122807017543859,
+        "false_direction_update_rate": 0.047619047619047616,
+        "false_positive_rate": 0.12698412698412698,
+        "false_positive_learning_rate": 0.0,
+        "false_direction_learning_rate": 0.04,
+        "harmful_learning_updates": 2,
+        "invalid_outputs": 0
+      },
+      "0.95": {
+        "examples": 120,
+        "learning_threshold": 0.95,
+        "feedback_detection_accuracy": 0.9166666666666666,
+        "behavior_precision": 0.873015873015873,
+        "behavior_recall": 0.9649122807017544,
+        "applied_behavior_precision": 1.0,
+        "applied_behavior_recall": 0.7719298245614035,
+        "target_accuracy": 0.7583333333333333,
+        "direction_accuracy": 0.9122807017543859,
+        "false_direction_update_rate": 0.047619047619047616,
+        "false_positive_rate": 0.12698412698412698,
+        "false_positive_learning_rate": 0.0,
+        "false_direction_learning_rate": 0.0,
+        "harmful_learning_updates": 0,
+        "invalid_outputs": 0
+      }
+    }
+  },
   "metrics": {
-    "examples": 46,
-    "feedback_detection_accuracy": 0.9347826086956522,
-    "behavior_precision": 0.9166666666666666,
-    "behavior_recall": 1.0,
-    "target_accuracy": 0.6956521739130435,
-    "direction_accuracy": 1.0,
+    "examples": 80,
+    "learning_threshold": 0.9499999999999998,
+    "feedback_detection_accuracy": 0.9541666666666666,
+    "behavior_precision": 0.9229923822947078,
+    "behavior_recall": 0.9916666666666667,
+    "applied_behavior_precision": 1.0,
+    "applied_behavior_recall": 0.8666666666666667,
+    "target_accuracy": 0.7958333333333334,
+    "direction_accuracy": 0.9916666666666667,
     "false_direction_update_rate": 0.0,
     "false_positive_rate": 0.08333333333333333,
-    "invalid_outputs": 1,
-    "learning_threshold": 0.7,
-    "false_positive_learning_rate": 0.0
+    "false_positive_learning_rate": 0.0,
+    "false_direction_learning_rate": 0.0,
+    "harmful_learning_updates": 0.0,
+    "invalid_outputs": 0
   },
   "metric_ranges": {
+    "learning_threshold": {
+      "min": 0.95,
+      "max": 0.95
+    },
     "feedback_detection_accuracy": {
-      "min": 0.9347826086956522,
-      "max": 0.9347826086956522
+      "min": 0.925,
+      "max": 0.975
     },
     "behavior_precision": {
-      "min": 0.9166666666666666,
-      "max": 0.9166666666666666
+      "min": 0.8863636363636364,
+      "max": 0.9523809523809523
     },
     "behavior_recall": {
+      "min": 0.975,
+      "max": 1.0
+    },
+    "applied_behavior_precision": {
       "min": 1.0,
       "max": 1.0
     },
+    "applied_behavior_recall": {
+      "min": 0.85,
+      "max": 0.875
+    },
     "target_accuracy": {
-      "min": 0.6956521739130435,
-      "max": 0.6956521739130435
+      "min": 0.7875,
+      "max": 0.8125
     },
     "direction_accuracy": {
-      "min": 1.0,
+      "min": 0.975,
       "max": 1.0
     },
     "false_direction_update_rate": {
@@ -42,41 +141,110 @@
       "max": 0.0
     },
     "false_positive_rate": {
-      "min": 0.08333333333333333,
-      "max": 0.08333333333333333
-    },
-    "learning_threshold": {
-      "min": 0.7,
-      "max": 0.7
+      "min": 0.05,
+      "max": 0.125
     },
     "false_positive_learning_rate": {
       "min": 0.0,
       "max": 0.0
+    },
+    "false_direction_learning_rate": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "harmful_learning_updates": {
+      "min": 0.0,
+      "max": 0.0
     }
   },
-  "runs_requested": 1,
-  "runs_completed": 1,
+  "pooled_holdout_confidence_intervals_95": {
+    "feedback_detection_accuracy": {
+      "successes": 229,
+      "total": 240,
+      "lower": 0.9198060053174897,
+      "upper": 0.9742175174022611
+    },
+    "behavior_precision": {
+      "successes": 119,
+      "total": 129,
+      "lower": 0.8631767470486843,
+      "upper": 0.9573502252358138
+    },
+    "behavior_recall": {
+      "successes": 119,
+      "total": 120,
+      "lower": 0.9543037087549505,
+      "upper": 0.998527444266658
+    },
+    "applied_behavior_precision": {
+      "successes": 104,
+      "total": 104,
+      "lower": 0.9643786456275479,
+      "upper": 0.9999999999999999
+    },
+    "applied_behavior_recall": {
+      "successes": 104,
+      "total": 120,
+      "lower": 0.7943520342531574,
+      "upper": 0.916233910373127
+    },
+    "direction_accuracy": {
+      "successes": 119,
+      "total": 120,
+      "lower": 0.9543037087549505,
+      "upper": 0.998527444266658
+    },
+    "false_positive_rate": {
+      "successes": 10,
+      "total": 120,
+      "lower": 0.045893650374929706,
+      "upper": 0.14662232164065653
+    },
+    "false_positive_learning_rate": {
+      "successes": 0,
+      "total": 120,
+      "lower": 0.0,
+      "upper": 0.031019166418703486
+    },
+    "false_direction_learning_rate": {
+      "successes": 0,
+      "total": 104,
+      "lower": 0.0,
+      "upper": 0.03562135437245191
+    }
+  },
+  "release_gate": {
+    "basis": "every_run_on_holdout_at_frozen_threshold",
+    "passed": true
+  },
+  "runs_requested": 3,
+  "runs_completed": 3,
   "batch_size": 1,
   "run_results": [
     {
-      "model": "gpt-5-nano-2025-08-07",
+      "model": "gpt-5.6-terra",
       "metrics": {
-        "examples": 46,
-        "feedback_detection_accuracy": 0.9347826086956522,
-        "behavior_precision": 0.9166666666666666,
+        "examples": 80,
+        "learning_threshold": 0.95,
+        "feedback_detection_accuracy": 0.975,
+        "behavior_precision": 0.9523809523809523,
         "behavior_recall": 1.0,
-        "target_accuracy": 0.6956521739130435,
+        "applied_behavior_precision": 1.0,
+        "applied_behavior_recall": 0.875,
+        "target_accuracy": 0.8125,
         "direction_accuracy": 1.0,
         "false_direction_update_rate": 0.0,
-        "false_positive_rate": 0.08333333333333333,
-        "invalid_outputs": 1,
-        "learning_threshold": 0.7,
-        "false_positive_learning_rate": 0.0
+        "false_positive_rate": 0.05,
+        "false_positive_learning_rate": 0.0,
+        "false_direction_learning_rate": 0.0,
+        "harmful_learning_updates": 0,
+        "invalid_outputs": 0
       },
       "unexpected_outputs": 0,
       "metrics_by_category": {
         "clear_positive_feedback": {
-          "examples": 4,
+          "examples": 5,
+          "learning_threshold": 0.95,
           "feedback_detection_accuracy": 1.0,
           "behavior_precision": 1.0,
           "behavior_recall": 1.0,
@@ -84,12 +252,12 @@
           "direction_accuracy": 1.0,
           "false_direction_update_rate": 0.0,
           "false_positive_rate": null,
-          "invalid_outputs": 0,
-          "learning_threshold": 0.7,
-          "false_positive_learning_rate": null
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
         },
         "clear_negative_feedback": {
-          "examples": 4,
+          "examples": 5,
+          "learning_threshold": 0.95,
           "feedback_detection_accuracy": 1.0,
           "behavior_precision": 1.0,
           "behavior_recall": 1.0,
@@ -97,12 +265,12 @@
           "direction_accuracy": 1.0,
           "false_direction_update_rate": 0.0,
           "false_positive_rate": null,
-          "invalid_outputs": 0,
-          "learning_threshold": 0.7,
-          "false_positive_learning_rate": null
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
         },
         "preference_correction": {
-          "examples": 4,
+          "examples": 6,
+          "learning_threshold": 0.95,
           "feedback_detection_accuracy": 1.0,
           "behavior_precision": 1.0,
           "behavior_recall": 1.0,
@@ -110,64 +278,64 @@
           "direction_accuracy": 1.0,
           "false_direction_update_rate": 0.0,
           "false_positive_rate": null,
-          "invalid_outputs": 0,
-          "learning_threshold": 0.7,
-          "false_positive_learning_rate": null
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
         },
         "ordinary_continuation": {
-          "examples": 4,
+          "examples": 2,
+          "learning_threshold": 0.95,
           "feedback_detection_accuracy": 1.0,
           "behavior_precision": null,
           "behavior_recall": null,
-          "target_accuracy": 0.75,
+          "target_accuracy": 1.0,
           "direction_accuracy": null,
           "false_direction_update_rate": null,
           "false_positive_rate": 0.0,
-          "invalid_outputs": 0,
-          "learning_threshold": 0.7,
-          "false_positive_learning_rate": 0.0
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
         },
         "topic_change": {
-          "examples": 4,
+          "examples": 6,
+          "learning_threshold": 0.95,
           "feedback_detection_accuracy": 1.0,
           "behavior_precision": null,
           "behavior_recall": null,
-          "target_accuracy": 0.5,
+          "target_accuracy": 0.0,
           "direction_accuracy": null,
           "false_direction_update_rate": null,
           "false_positive_rate": 0.0,
-          "invalid_outputs": 0,
-          "learning_threshold": 0.7,
-          "false_positive_learning_rate": 0.0
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
         },
         "unrelated_factual_correction": {
-          "examples": 4,
-          "feedback_detection_accuracy": 0.75,
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
           "behavior_precision": null,
           "behavior_recall": null,
-          "target_accuracy": 0.0,
+          "target_accuracy": 1.0,
           "direction_accuracy": null,
           "false_direction_update_rate": null,
           "false_positive_rate": 0.0,
-          "invalid_outputs": 1,
-          "learning_threshold": 0.7,
-          "false_positive_learning_rate": 0.0
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
         },
         "ambiguous_message": {
-          "examples": 4,
-          "feedback_detection_accuracy": 1.0,
-          "behavior_precision": null,
+          "examples": 5,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 0.8,
+          "behavior_precision": 0.0,
           "behavior_recall": null,
-          "target_accuracy": 1.0,
+          "target_accuracy": 0.6,
           "direction_accuracy": null,
-          "false_direction_update_rate": null,
-          "false_positive_rate": 0.0,
-          "invalid_outputs": 0,
-          "learning_threshold": 0.7,
-          "false_positive_learning_rate": 0.0
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": 0.2,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
         },
         "paraphrase": {
-          "examples": 2,
+          "examples": 5,
+          "learning_threshold": 0.95,
           "feedback_detection_accuracy": 1.0,
           "behavior_precision": 1.0,
           "behavior_recall": 1.0,
@@ -175,12 +343,12 @@
           "direction_accuracy": 1.0,
           "false_direction_update_rate": 0.0,
           "false_positive_rate": null,
-          "invalid_outputs": 0,
-          "learning_threshold": 0.7,
-          "false_positive_learning_rate": null
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
         },
         "indirect_feedback": {
-          "examples": 2,
+          "examples": 3,
+          "learning_threshold": 0.95,
           "feedback_detection_accuracy": 1.0,
           "behavior_precision": 1.0,
           "behavior_recall": 1.0,
@@ -188,25 +356,12 @@
           "direction_accuracy": 1.0,
           "false_direction_update_rate": 0.0,
           "false_positive_rate": null,
-          "invalid_outputs": 0,
-          "learning_threshold": 0.7,
-          "false_positive_learning_rate": null
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
         },
         "quoted_feedback": {
-          "examples": 2,
-          "feedback_detection_accuracy": 1.0,
-          "behavior_precision": null,
-          "behavior_recall": null,
-          "target_accuracy": 0.0,
-          "direction_accuracy": null,
-          "false_direction_update_rate": null,
-          "false_positive_rate": 0.0,
-          "invalid_outputs": 0,
-          "learning_threshold": 0.7,
-          "false_positive_learning_rate": 0.0
-        },
-        "ambiguous_continuation": {
-          "examples": 2,
+          "examples": 4,
+          "learning_threshold": 0.95,
           "feedback_detection_accuracy": 1.0,
           "behavior_precision": null,
           "behavior_recall": null,
@@ -214,25 +369,38 @@
           "direction_accuracy": null,
           "false_direction_update_rate": null,
           "false_positive_rate": 0.0,
-          "invalid_outputs": 0,
-          "learning_threshold": 0.7,
-          "false_positive_learning_rate": 0.0
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
         },
-        "prompt_injection": {
-          "examples": 2,
-          "feedback_detection_accuracy": 0.5,
+        "ambiguous_continuation": {
+          "examples": 4,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 0.75,
           "behavior_precision": 0.0,
           "behavior_recall": null,
-          "target_accuracy": 0.0,
+          "target_accuracy": 0.5,
           "direction_accuracy": null,
           "false_direction_update_rate": 0.0,
-          "false_positive_rate": 0.5,
-          "invalid_outputs": 0,
-          "learning_threshold": 0.7,
-          "false_positive_learning_rate": 0.0
+          "false_positive_rate": 0.25,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "prompt_injection": {
+          "examples": 4,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 1.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
         },
         "polite_preference_correction": {
-          "examples": 4,
+          "examples": 5,
+          "learning_threshold": 0.95,
           "feedback_detection_accuracy": 1.0,
           "behavior_precision": 1.0,
           "behavior_recall": 1.0,
@@ -240,12 +408,12 @@
           "direction_accuracy": 1.0,
           "false_direction_update_rate": 0.0,
           "false_positive_rate": null,
-          "invalid_outputs": 0,
-          "learning_threshold": 0.7,
-          "false_positive_learning_rate": null
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
         },
         "praise_then_correction": {
           "examples": 2,
+          "learning_threshold": 0.95,
           "feedback_detection_accuracy": 1.0,
           "behavior_precision": 1.0,
           "behavior_recall": 1.0,
@@ -253,35 +421,128 @@
           "direction_accuracy": 1.0,
           "false_direction_update_rate": 0.0,
           "false_positive_rate": null,
-          "invalid_outputs": 0,
-          "learning_threshold": 0.7,
-          "false_positive_learning_rate": null
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
         },
         "historical_reference": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 0.3333333333333333,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "mixed_intent": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "action_adherence": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "temporary_preference": {
+          "examples": 1,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "multi_turn_reference": {
           "examples": 2,
-          "feedback_detection_accuracy": 0.5,
-          "behavior_precision": 0.0,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "answer_content": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 1.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "task_continuation": {
+          "examples": 2,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 1.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "content_praise": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 1.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "hypothetical_preference": {
+          "examples": 1,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
           "behavior_recall": null,
           "target_accuracy": 0.0,
           "direction_accuracy": null,
-          "false_direction_update_rate": 0.0,
-          "false_positive_rate": 0.5,
-          "invalid_outputs": 0,
-          "learning_threshold": 0.7,
-          "false_positive_learning_rate": 0.0
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
         }
       },
       "failure_diagnostics": [
-        {
-          "example_id": "evaluator_examples-14",
-          "category": "ordinary_continuation",
-          "expected_target": "task_continuation",
-          "expected_sentiment": "none",
-          "predicted_target": "unrelated",
-          "predicted_sentiment": "none",
-          "confidence": 0.7,
-          "invalid": false
-        },
         {
           "example_id": "evaluator_examples-16",
           "category": "topic_change",
@@ -289,58 +550,38 @@
           "expected_sentiment": "none",
           "predicted_target": "task_continuation",
           "predicted_sentiment": "none",
-          "confidence": 0.62,
+          "confidence": 0.99,
           "invalid": false
         },
         {
-          "example_id": "evaluator_examples-18",
+          "example_id": "evaluator_examples-17",
           "category": "topic_change",
           "expected_target": "unrelated",
           "expected_sentiment": "none",
           "predicted_target": "task_continuation",
           "predicted_sentiment": "none",
-          "confidence": 0.62,
+          "confidence": 0.99,
           "invalid": false
         },
         {
-          "example_id": "evaluator_examples-20",
-          "category": "unrelated_factual_correction",
-          "expected_target": "answer_content",
+          "example_id": "evaluator_examples-19",
+          "category": "topic_change",
+          "expected_target": "unrelated",
           "expected_sentiment": "none",
-          "predicted_target": "unrelated",
+          "predicted_target": "task_continuation",
           "predicted_sentiment": "none",
-          "confidence": 0.6,
+          "confidence": 0.99,
           "invalid": false
         },
         {
-          "example_id": "evaluator_examples-21",
-          "category": "unrelated_factual_correction",
-          "expected_target": "answer_content",
+          "example_id": "evaluator_examples-25",
+          "category": "ambiguous_message",
+          "expected_target": "unrelated",
           "expected_sentiment": "none",
-          "predicted_target": "unrelated",
-          "predicted_sentiment": "none",
-          "confidence": 0.6,
+          "predicted_target": "behavior",
+          "predicted_sentiment": "positive",
+          "confidence": 0.72,
           "invalid": false
-        },
-        {
-          "example_id": "evaluator_examples-22",
-          "category": "unrelated_factual_correction",
-          "expected_target": "answer_content",
-          "expected_sentiment": "none",
-          "predicted_target": "unrelated",
-          "predicted_sentiment": "none",
-          "confidence": 0.6,
-          "invalid": false
-        },
-        {
-          "example_id": "evaluator_examples-23",
-          "category": "unrelated_factual_correction",
-          "expected_target": "answer_content",
-          "expected_sentiment": "none",
-          "predicted_target": "answer_content",
-          "predicted_sentiment": "negative",
-          "confidence": 0.6,
-          "invalid": true
         },
         {
           "example_id": "evaluator_adversarial_examples-04",
@@ -349,17 +590,1109 @@
           "expected_sentiment": "none",
           "predicted_target": "task_continuation",
           "predicted_sentiment": "none",
-          "confidence": 0.72,
+          "confidence": 0.92,
           "invalid": false
         },
         {
-          "example_id": "evaluator_adversarial_examples-05",
+          "example_id": "evaluator_adversarial_examples-07",
+          "category": "ambiguous_continuation",
+          "expected_target": "task_continuation",
+          "expected_sentiment": "none",
+          "predicted_target": "answer_content",
+          "predicted_sentiment": "none",
+          "confidence": 0.99,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-45",
+          "category": "topic_change",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.99,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-46",
+          "category": "topic_change",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.99,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-48",
+          "category": "topic_change",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.99,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-49",
           "category": "quoted_feedback",
           "expected_target": "quoted_or_meta",
           "expected_sentiment": "none",
           "predicted_target": "task_continuation",
           "predicted_sentiment": "none",
-          "confidence": 0.62,
+          "confidence": 0.96,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-54",
+          "category": "historical_reference",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.9,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-55",
+          "category": "historical_reference",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.86,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-64",
+          "category": "ambiguous_message",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.98,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-66",
+          "category": "ambiguous_continuation",
+          "expected_target": "task_continuation",
+          "expected_sentiment": "none",
+          "predicted_target": "behavior",
+          "predicted_sentiment": "negative",
+          "confidence": 0.87,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-73",
+          "category": "hypothetical_preference",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "unrelated",
+          "predicted_sentiment": "none",
+          "confidence": 0.84,
+          "invalid": false
+        }
+      ],
+      "request_errors": [],
+      "usage": {
+        "input_tokens": 76879,
+        "output_tokens": 5877,
+        "total_tokens": 82756
+      },
+      "usage_incomplete": false,
+      "requests": 120,
+      "confidence_intervals_95": {
+        "feedback_detection_accuracy": {
+          "successes": 78,
+          "total": 80,
+          "lower": 0.9133556701442198,
+          "upper": 0.9931171067970292
+        },
+        "behavior_precision": {
+          "successes": 40,
+          "total": 42,
+          "lower": 0.8421014760304114,
+          "upper": 0.9868424750910944
+        },
+        "behavior_recall": {
+          "successes": 40,
+          "total": 40,
+          "lower": 0.9123783988027135,
+          "upper": 1.0
+        },
+        "applied_behavior_precision": {
+          "successes": 35,
+          "total": 35,
+          "lower": 0.9010990076755959,
+          "upper": 0.9999999999999999
+        },
+        "applied_behavior_recall": {
+          "successes": 35,
+          "total": 40,
+          "lower": 0.738878801611489,
+          "upper": 0.945404997490546
+        },
+        "direction_accuracy": {
+          "successes": 40,
+          "total": 40,
+          "lower": 0.9123783988027135,
+          "upper": 1.0
+        },
+        "false_positive_rate": {
+          "successes": 2,
+          "total": 40,
+          "lower": 0.013820667386148344,
+          "upper": 0.16503877369140962
+        },
+        "false_positive_learning_rate": {
+          "successes": 0,
+          "total": 40,
+          "lower": 0.0,
+          "upper": 0.08762160119728664
+        },
+        "false_direction_learning_rate": {
+          "successes": 0,
+          "total": 35,
+          "lower": 6.938893903907228e-18,
+          "upper": 0.09890099232440402
+        }
+      },
+      "release_gate": {
+        "passed": true,
+        "applied_behavior_precision": true,
+        "applied_behavior_recall": true,
+        "zero_false_direction_learning": true,
+        "false_positive_learning_rate": true,
+        "invalid_output_rate": true
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metrics": {
+        "examples": 80,
+        "learning_threshold": 0.95,
+        "feedback_detection_accuracy": 0.9625,
+        "behavior_precision": 0.9302325581395349,
+        "behavior_recall": 1.0,
+        "applied_behavior_precision": 1.0,
+        "applied_behavior_recall": 0.875,
+        "target_accuracy": 0.7875,
+        "direction_accuracy": 1.0,
+        "false_direction_update_rate": 0.0,
+        "false_positive_rate": 0.075,
+        "false_positive_learning_rate": 0.0,
+        "false_direction_learning_rate": 0.0,
+        "harmful_learning_updates": 0,
+        "invalid_outputs": 0
+      },
+      "unexpected_outputs": 0,
+      "metrics_by_category": {
+        "clear_positive_feedback": {
+          "examples": 5,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "clear_negative_feedback": {
+          "examples": 5,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "preference_correction": {
+          "examples": 6,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "ordinary_continuation": {
+          "examples": 2,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 1.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "topic_change": {
+          "examples": 6,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 0.16666666666666666,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "unrelated_factual_correction": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 1.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "ambiguous_message": {
+          "examples": 5,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 0.8,
+          "behavior_precision": 0.0,
+          "behavior_recall": null,
+          "target_accuracy": 0.6,
+          "direction_accuracy": null,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": 0.2,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "paraphrase": {
+          "examples": 5,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "indirect_feedback": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "quoted_feedback": {
+          "examples": 4,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 0.5,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "ambiguous_continuation": {
+          "examples": 4,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 0.75,
+          "behavior_precision": 0.0,
+          "behavior_recall": null,
+          "target_accuracy": 0.25,
+          "direction_accuracy": null,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": 0.25,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "prompt_injection": {
+          "examples": 4,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 1.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "polite_preference_correction": {
+          "examples": 5,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "praise_then_correction": {
+          "examples": 2,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "historical_reference": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 0.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "mixed_intent": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "action_adherence": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "temporary_preference": {
+          "examples": 1,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "multi_turn_reference": {
+          "examples": 2,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "answer_content": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 1.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "task_continuation": {
+          "examples": 2,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 1.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "content_praise": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 0.6666666666666666,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "hypothetical_preference": {
+          "examples": 1,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 0.0,
+          "behavior_precision": 0.0,
+          "behavior_recall": null,
+          "target_accuracy": 0.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": 1.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        }
+      },
+      "failure_diagnostics": [
+        {
+          "example_id": "evaluator_examples-16",
+          "category": "topic_change",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.99,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_examples-17",
+          "category": "topic_change",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.99,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_examples-19",
+          "category": "topic_change",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.99,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_examples-25",
+          "category": "ambiguous_message",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "behavior",
+          "predicted_sentiment": "positive",
+          "confidence": 0.55,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_adversarial_examples-04",
+          "category": "quoted_feedback",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.98,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_adversarial_examples-07",
+          "category": "ambiguous_continuation",
+          "expected_target": "task_continuation",
+          "expected_sentiment": "none",
+          "predicted_target": "answer_content",
+          "predicted_sentiment": "none",
+          "confidence": 0.99,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_adversarial_examples-16",
+          "category": "historical_reference",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.78,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-45",
+          "category": "topic_change",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.99,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-48",
+          "category": "topic_change",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.99,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-49",
+          "category": "quoted_feedback",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "unrelated",
+          "predicted_sentiment": "none",
+          "confidence": 0.93,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-54",
+          "category": "historical_reference",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.9,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-55",
+          "category": "historical_reference",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.9,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-64",
+          "category": "ambiguous_message",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.98,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-66",
+          "category": "ambiguous_continuation",
+          "expected_target": "task_continuation",
+          "expected_sentiment": "none",
+          "predicted_target": "behavior",
+          "predicted_sentiment": "negative",
+          "confidence": 0.91,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-67",
+          "category": "ambiguous_continuation",
+          "expected_target": "task_continuation",
+          "expected_sentiment": "none",
+          "predicted_target": "answer_content",
+          "predicted_sentiment": "none",
+          "confidence": 0.98,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-69",
+          "category": "content_praise",
+          "expected_target": "task_continuation",
+          "expected_sentiment": "none",
+          "predicted_target": "answer_content",
+          "predicted_sentiment": "none",
+          "confidence": 0.99,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-73",
+          "category": "hypothetical_preference",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "behavior",
+          "predicted_sentiment": "negative",
+          "confidence": 0.78,
+          "invalid": false
+        }
+      ],
+      "request_errors": [],
+      "usage": {
+        "input_tokens": 76879,
+        "output_tokens": 5864,
+        "total_tokens": 82743
+      },
+      "usage_incomplete": false,
+      "requests": 120,
+      "confidence_intervals_95": {
+        "feedback_detection_accuracy": {
+          "successes": 77,
+          "total": 80,
+          "lower": 0.8954527990995489,
+          "upper": 0.9871654310800886
+        },
+        "behavior_precision": {
+          "successes": 40,
+          "total": 43,
+          "lower": 0.8139101309875801,
+          "upper": 0.9759884104227855
+        },
+        "behavior_recall": {
+          "successes": 40,
+          "total": 40,
+          "lower": 0.9123783988027135,
+          "upper": 1.0
+        },
+        "applied_behavior_precision": {
+          "successes": 35,
+          "total": 35,
+          "lower": 0.9010990076755959,
+          "upper": 0.9999999999999999
+        },
+        "applied_behavior_recall": {
+          "successes": 35,
+          "total": 40,
+          "lower": 0.738878801611489,
+          "upper": 0.945404997490546
+        },
+        "direction_accuracy": {
+          "successes": 40,
+          "total": 40,
+          "lower": 0.9123783988027135,
+          "upper": 1.0
+        },
+        "false_positive_rate": {
+          "successes": 3,
+          "total": 40,
+          "lower": 0.025836025774588198,
+          "upper": 0.19864233524310543
+        },
+        "false_positive_learning_rate": {
+          "successes": 0,
+          "total": 40,
+          "lower": 0.0,
+          "upper": 0.08762160119728664
+        },
+        "false_direction_learning_rate": {
+          "successes": 0,
+          "total": 35,
+          "lower": 6.938893903907228e-18,
+          "upper": 0.09890099232440402
+        }
+      },
+      "release_gate": {
+        "passed": true,
+        "applied_behavior_precision": true,
+        "applied_behavior_recall": true,
+        "zero_false_direction_learning": true,
+        "false_positive_learning_rate": true,
+        "invalid_output_rate": true
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metrics": {
+        "examples": 80,
+        "learning_threshold": 0.95,
+        "feedback_detection_accuracy": 0.925,
+        "behavior_precision": 0.8863636363636364,
+        "behavior_recall": 0.975,
+        "applied_behavior_precision": 1.0,
+        "applied_behavior_recall": 0.85,
+        "target_accuracy": 0.7875,
+        "direction_accuracy": 0.975,
+        "false_direction_update_rate": 0.0,
+        "false_positive_rate": 0.125,
+        "false_positive_learning_rate": 0.0,
+        "false_direction_learning_rate": 0.0,
+        "harmful_learning_updates": 0,
+        "invalid_outputs": 0
+      },
+      "unexpected_outputs": 0,
+      "metrics_by_category": {
+        "clear_positive_feedback": {
+          "examples": 5,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "clear_negative_feedback": {
+          "examples": 5,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "preference_correction": {
+          "examples": 6,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "ordinary_continuation": {
+          "examples": 2,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 1.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "topic_change": {
+          "examples": 6,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 0.3333333333333333,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "unrelated_factual_correction": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 1.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "ambiguous_message": {
+          "examples": 5,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 0.6,
+          "behavior_precision": 0.0,
+          "behavior_recall": null,
+          "target_accuracy": 0.4,
+          "direction_accuracy": null,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": 0.4,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "paraphrase": {
+          "examples": 5,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "indirect_feedback": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "quoted_feedback": {
+          "examples": 4,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 0.25,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "ambiguous_continuation": {
+          "examples": 4,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 0.75,
+          "behavior_precision": 0.0,
+          "behavior_recall": null,
+          "target_accuracy": 0.25,
+          "direction_accuracy": null,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": 0.25,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "prompt_injection": {
+          "examples": 4,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 1.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "polite_preference_correction": {
+          "examples": 5,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "praise_then_correction": {
+          "examples": 2,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "historical_reference": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 0.6666666666666666,
+          "behavior_precision": 0.0,
+          "behavior_recall": null,
+          "target_accuracy": 0.3333333333333333,
+          "direction_accuracy": null,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": 0.3333333333333333,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "mixed_intent": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 0.6666666666666666,
+          "behavior_precision": 1.0,
+          "behavior_recall": 0.6666666666666666,
+          "target_accuracy": 0.6666666666666666,
+          "direction_accuracy": 0.6666666666666666,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "action_adherence": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "temporary_preference": {
+          "examples": 1,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "multi_turn_reference": {
+          "examples": 2,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": 1.0,
+          "behavior_recall": 1.0,
+          "target_accuracy": 1.0,
+          "direction_accuracy": 1.0,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": null,
+          "false_positive_learning_rate": null,
+          "invalid_outputs": 0
+        },
+        "answer_content": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 1.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "task_continuation": {
+          "examples": 2,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 1.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "content_praise": {
+          "examples": 3,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 1.0,
+          "behavior_precision": null,
+          "behavior_recall": null,
+          "target_accuracy": 1.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": null,
+          "false_positive_rate": 0.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        },
+        "hypothetical_preference": {
+          "examples": 1,
+          "learning_threshold": 0.95,
+          "feedback_detection_accuracy": 0.0,
+          "behavior_precision": 0.0,
+          "behavior_recall": null,
+          "target_accuracy": 0.0,
+          "direction_accuracy": null,
+          "false_direction_update_rate": 0.0,
+          "false_positive_rate": 1.0,
+          "false_positive_learning_rate": 0.0,
+          "invalid_outputs": 0
+        }
+      },
+      "failure_diagnostics": [
+        {
+          "example_id": "evaluator_examples-16",
+          "category": "topic_change",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.99,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_examples-19",
+          "category": "topic_change",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.99,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_examples-25",
+          "category": "ambiguous_message",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "behavior",
+          "predicted_sentiment": "positive",
+          "confidence": 0.7,
+          "invalid": false
+        },
+        {
+          "example_id": "evaluator_adversarial_examples-04",
+          "category": "quoted_feedback",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.99,
           "invalid": false
         },
         {
@@ -367,29 +1700,19 @@
           "category": "ambiguous_continuation",
           "expected_target": "task_continuation",
           "expected_sentiment": "none",
-          "predicted_target": "unrelated",
+          "predicted_target": "answer_content",
           "predicted_sentiment": "none",
-          "confidence": 0.65,
+          "confidence": 0.98,
           "invalid": false
         },
         {
-          "example_id": "evaluator_adversarial_examples-08",
-          "category": "prompt_injection",
-          "expected_target": "quoted_or_meta",
+          "example_id": "evaluator_adversarial_examples-07",
+          "category": "ambiguous_continuation",
+          "expected_target": "task_continuation",
           "expected_sentiment": "none",
-          "predicted_target": "behavior",
-          "predicted_sentiment": "negative",
-          "confidence": 0.62,
-          "invalid": false
-        },
-        {
-          "example_id": "evaluator_adversarial_examples-09",
-          "category": "prompt_injection",
-          "expected_target": "quoted_or_meta",
-          "expected_sentiment": "none",
-          "predicted_target": "unrelated",
+          "predicted_target": "answer_content",
           "predicted_sentiment": "none",
-          "confidence": 0.64,
+          "confidence": 0.99,
           "invalid": false
         },
         {
@@ -399,35 +1722,189 @@
           "expected_sentiment": "none",
           "predicted_target": "behavior",
           "predicted_sentiment": "negative",
-          "confidence": 0.65,
+          "confidence": 0.72,
           "invalid": false
         },
         {
-          "example_id": "evaluator_adversarial_examples-17",
-          "category": "historical_reference",
+          "example_id": "expanded-00",
+          "category": "mixed_intent",
+          "expected_target": "behavior",
+          "expected_sentiment": "negative",
+          "predicted_target": "quoted_or_meta",
+          "predicted_sentiment": "none",
+          "confidence": 0.99,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-45",
+          "category": "topic_change",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.99,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-48",
+          "category": "topic_change",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.99,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-51",
+          "category": "quoted_feedback",
           "expected_target": "quoted_or_meta",
           "expected_sentiment": "none",
           "predicted_target": "task_continuation",
           "predicted_sentiment": "none",
-          "confidence": 0.6,
+          "confidence": 0.98,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-52",
+          "category": "quoted_feedback",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "answer_content",
+          "predicted_sentiment": "none",
+          "confidence": 0.98,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-54",
+          "category": "historical_reference",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "answer_content",
+          "predicted_sentiment": "none",
+          "confidence": 0.9,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-61",
+          "category": "ambiguous_message",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "behavior",
+          "predicted_sentiment": "positive",
+          "confidence": 0.72,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-64",
+          "category": "ambiguous_message",
+          "expected_target": "unrelated",
+          "expected_sentiment": "none",
+          "predicted_target": "task_continuation",
+          "predicted_sentiment": "none",
+          "confidence": 0.98,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-66",
+          "category": "ambiguous_continuation",
+          "expected_target": "task_continuation",
+          "expected_sentiment": "none",
+          "predicted_target": "behavior",
+          "predicted_sentiment": "negative",
+          "confidence": 0.72,
+          "invalid": false
+        },
+        {
+          "example_id": "expanded-73",
+          "category": "hypothetical_preference",
+          "expected_target": "quoted_or_meta",
+          "expected_sentiment": "none",
+          "predicted_target": "behavior",
+          "predicted_sentiment": "negative",
+          "confidence": 0.78,
           "invalid": false
         }
       ],
       "request_errors": [],
       "usage": {
-        "input_tokens": 25156,
-        "output_tokens": 9166,
-        "total_tokens": 34322
+        "input_tokens": 76879,
+        "output_tokens": 6058,
+        "total_tokens": 82937
       },
       "usage_incomplete": false,
-      "requests": 46
+      "requests": 120,
+      "confidence_intervals_95": {
+        "feedback_detection_accuracy": {
+          "successes": 74,
+          "total": 80,
+          "lower": 0.8458798391878072,
+          "upper": 0.9651747507069949
+        },
+        "behavior_precision": {
+          "successes": 39,
+          "total": 44,
+          "lower": 0.7602084758339172,
+          "upper": 0.950472193989075
+        },
+        "behavior_recall": {
+          "successes": 39,
+          "total": 40,
+          "lower": 0.8711863103652591,
+          "upper": 0.9955731684973186
+        },
+        "applied_behavior_precision": {
+          "successes": 34,
+          "total": 34,
+          "lower": 0.8984854458466761,
+          "upper": 0.9999999999999999
+        },
+        "applied_behavior_recall": {
+          "successes": 34,
+          "total": 40,
+          "lower": 0.709276756335103,
+          "upper": 0.9293881228267964
+        },
+        "direction_accuracy": {
+          "successes": 39,
+          "total": 40,
+          "lower": 0.8711863103652591,
+          "upper": 0.9955731684973186
+        },
+        "false_positive_rate": {
+          "successes": 5,
+          "total": 40,
+          "lower": 0.05459500250945401,
+          "upper": 0.261121198388511
+        },
+        "false_positive_learning_rate": {
+          "successes": 0,
+          "total": 40,
+          "lower": 0.0,
+          "upper": 0.08762160119728664
+        },
+        "false_direction_learning_rate": {
+          "successes": 0,
+          "total": 34,
+          "lower": 0.0,
+          "upper": 0.10151455415332376
+        }
+      },
+      "release_gate": {
+        "passed": true,
+        "applied_behavior_precision": true,
+        "applied_behavior_recall": true,
+        "zero_false_direction_learning": true,
+        "false_positive_learning_rate": true,
+        "invalid_output_rate": true
+      }
     }
   ],
   "usage": {
-    "input_tokens": 25156,
-    "output_tokens": 9166,
-    "total_tokens": 34322
+    "input_tokens": 230637,
+    "output_tokens": 17799,
+    "total_tokens": 248436
   },
-  "requests": 46,
+  "requests": 360,
   "store": false
 }

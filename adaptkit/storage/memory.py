@@ -7,7 +7,12 @@ from threading import RLock
 from typing import Any
 
 from adaptkit.events import Decision, LearningMode, ObservationStatus, PreferenceEvent
-from adaptkit.exceptions import DecisionMismatchError, DecisionNotFoundError
+from adaptkit.exceptions import (
+    ActionSetMismatchError,
+    DecisionMismatchError,
+    DecisionNotFoundError,
+    IdempotencyConflictError,
+)
 
 from .base import (
     PolicySnapshot,
@@ -15,6 +20,9 @@ from .base import (
     StateStore,
     StateUpdater,
     StoredObservation,
+    action_set_identity,
+    canonical_operation_identity,
+    same_observation_request,
 )
 
 
@@ -24,16 +32,33 @@ def _persisted_event(event: PreferenceEvent) -> PreferenceEvent:
         sentiment=event.sentiment,
         confidence=event.confidence,
         source=event.source,
+        signal_type=event.signal_type,
+        metadata=event.metadata,
+    )
+
+
+def _detached_observation(
+    observation: StoredObservation, *, duplicate: bool | None = None
+) -> StoredObservation:
+    return replace(
+        observation,
+        event=_persisted_event(observation.event),
+        duplicate=observation.duplicate if duplicate is None else duplicate,
     )
 
 
 class InMemoryStore(StateStore):
+    """Thread-safe, process-local structured personalization storage."""
+
     def __init__(self) -> None:
         self._states: dict[tuple[str, str, str], dict[str, float]] = {}
         self._versions: dict[tuple[str, str], int] = {}
+        self._action_sets: dict[tuple[str, str], tuple[str, ...]] = {}
         self._decisions: dict[str, Decision] = {}
         self._observations: dict[tuple[str, str], StoredObservation] = {}
-        self._operations: dict[tuple[str, str, str], PolicyUpdateResult] = {}
+        self._operations: dict[
+            tuple[str, str, str], tuple[str, PolicyUpdateResult]
+        ] = {}
         self._lock = RLock()
 
     def policy_snapshot(
@@ -41,14 +66,27 @@ class InMemoryStore(StateStore):
         user_id: str,
         context: str,
         actions: Sequence[str],
-        initial_state: Mapping[str, float],
+        initial_states: Mapping[str, Mapping[str, float]],
     ) -> PolicySnapshot:
         with self._lock:
+            policy_key = (user_id, context)
+            canonical, _, _ = action_set_identity(actions)
+            existing_actions = self._action_sets.get(policy_key)
+            if existing_actions is not None and existing_actions != canonical:
+                raise ActionSetMismatchError(
+                    f"action set mismatch for {context!r}: "
+                    f"stored={existing_actions!r}, requested={canonical!r}"
+                )
+            self._action_sets[policy_key] = canonical
+            for action in actions:
+                self._states.setdefault(
+                    (user_id, context, action), dict(initial_states[action])
+                )
             states = {
-                action: dict(self._states.get((user_id, context, action), initial_state))
+                action: dict(self._states[(user_id, context, action)])
                 for action in actions
             }
-            return PolicySnapshot(self._versions.get((user_id, context), 0), states)
+            return PolicySnapshot(self._versions.get(policy_key, 0), states)
 
     def create_decision(self, decision: Decision) -> None:
         with self._lock:
@@ -66,7 +104,11 @@ class InMemoryStore(StateStore):
     ) -> StoredObservation | None:
         with self._lock:
             observation = self._observations.get((decision_id, idempotency_key))
-            return None if observation is None else replace(observation, duplicate=True)
+            return (
+                None
+                if observation is None
+                else _detached_observation(observation, duplicate=True)
+            )
 
     def _validated_decision(self, decision: Decision) -> None:
         stored = self._decisions.get(decision.decision_id)
@@ -92,7 +134,13 @@ class InMemoryStore(StateStore):
             key = (decision.decision_id, idempotency_key)
             existing = self._observations.get(key)
             if existing is not None:
-                return replace(existing, duplicate=True)
+                if not same_observation_request(
+                    existing, event, learning_mode, status
+                ):
+                    raise IdempotencyConflictError(
+                        "idempotency key already identifies a different observation payload"
+                    )
+                return _detached_observation(existing, duplicate=True)
 
             policy_key = (decision.user_id, decision.context)
             version_before = self._versions.get(policy_key, 0)
@@ -118,7 +166,7 @@ class InMemoryStore(StateStore):
                 created_at=datetime.now(timezone.utc),
             )
             self._observations[key] = observation
-            return observation
+            return _detached_observation(observation)
 
     def atomic_policy_update(
         self,
@@ -126,26 +174,38 @@ class InMemoryStore(StateStore):
         user_id: str,
         context: str,
         idempotency_key: str,
-        initial_state: Mapping[str, float],
+        operation_identity: Mapping[str, str],
+        initial_states: Mapping[str, Mapping[str, float]],
         updaters: Mapping[str, StateUpdater],
     ) -> PolicyUpdateResult:
         with self._lock:
+            serialized_identity = canonical_operation_identity(operation_identity)
+            actions = tuple(initial_states)
+            self.policy_snapshot(user_id, context, actions, initial_states)
             operation_key = (user_id, context, idempotency_key)
             version_before = self._versions.get((user_id, context), 0)
             existing = self._operations.get(operation_key)
             if existing is not None:
-                return replace(existing, updated=False, duplicate=True)
+                stored_identity, stored_result = existing
+                if stored_identity != serialized_identity:
+                    raise IdempotencyConflictError(
+                        "idempotency key already identifies a different policy operation"
+                    )
+                return replace(stored_result, updated=False, duplicate=True)
 
+            staged_states: dict[str, dict[str, float]] = {}
             for action, updater in updaters.items():
                 state_key = (user_id, context, action)
-                state = dict(self._states.get(state_key, initial_state))
+                state = dict(self._states.get(state_key, initial_states[action]))
                 updater(state)
-                self._states[state_key] = state
+                staged_states[action] = state
+            for action, state in staged_states.items():
+                self._states[(user_id, context, action)] = state
             version_after = version_before + bool(updaters)
             if updaters:
                 self._versions[(user_id, context)] = version_after
             result = PolicyUpdateResult(bool(updaters), False, version_before, version_after)
-            self._operations[operation_key] = result
+            self._operations[operation_key] = (serialized_identity, result)
             return result
 
     def snapshot(self, user_id: str) -> dict[str, dict[str, dict[str, float]]]:
@@ -159,8 +219,13 @@ class InMemoryStore(StateStore):
     def export_user(self, user_id: str) -> dict[str, Any]:
         with self._lock:
             policies = [
-                {"context": context, "version": version}
-                for (stored_user, context), version in sorted(self._versions.items())
+                {
+                    "context": context,
+                    "version": self._versions.get((stored_user, context), 0),
+                    "actions": list(actions),
+                    "action_set_fingerprint": action_set_identity(actions)[2],
+                }
+                for (stored_user, context), actions in sorted(self._action_sets.items())
                 if stored_user == user_id
             ]
             decisions = [
@@ -169,6 +234,8 @@ class InMemoryStore(StateStore):
                     "context": decision.context,
                     "action": decision.action,
                     "policy_version": decision.policy_version,
+                    "selection_source": decision.selection_source.value,
+                    "selection_confidence": decision.selection_confidence,
                     "created_at": decision.created_at.isoformat(),
                 }
                 for decision in sorted(self._decisions.values(), key=lambda item: item.decision_id)
@@ -184,6 +251,8 @@ class InMemoryStore(StateStore):
                     "sentiment": observation.event.sentiment.value,
                     "confidence": observation.event.confidence,
                     "source": observation.event.source,
+                    "signal_type": observation.event.signal_type,
+                    "metadata": _persisted_event(observation.event).metadata,
                     "learning_mode": observation.learning_mode.value,
                     "status": observation.status.value,
                     "applied": observation.applied,
@@ -217,6 +286,9 @@ class InMemoryStore(StateStore):
             }
             self._versions = {
                 key: value for key, value in self._versions.items() if key[0] != user_id
+            }
+            self._action_sets = {
+                key: value for key, value in self._action_sets.items() if key[0] != user_id
             }
             self._decisions = {
                 key: value for key, value in self._decisions.items() if key not in decision_ids

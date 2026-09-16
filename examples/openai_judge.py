@@ -10,6 +10,7 @@ from openai import OpenAI
 from pydantic import BaseModel, ConfigDict, Field
 
 from adaptkit import LLMFeedbackExtractor, Profile
+from examples.configuration import required_confidence_threshold
 
 
 class OpenAIJudgment(BaseModel):
@@ -55,17 +56,21 @@ def build_openai_judge() -> tuple[Callable[[list[dict[str, str]]], dict[str, Any
         judgment = response.output_parsed
         if (judgment.target == "behavior") != (judgment.sentiment != "none"):
             raise RuntimeError("OpenAI response contained an inconsistent target and sentiment")
-        return {**judgment.model_dump(), "source": "implicit"}
+        return judgment.model_dump()
 
     return judge, model
 
 
 def main() -> None:
     judge, model = build_openai_judge()
+    threshold = required_confidence_threshold(
+        "ADAPTKIT_IMPLICIT_CONFIDENCE_THRESHOLD"
+    )
     profile = Profile(
         user_id="user-123",
         actions=["patch_first", "explanation_first"],
         evaluator=LLMFeedbackExtractor(judge=judge),
+        implicit_confidence_threshold=threshold,
     )
     decision = profile.choose("debugging")
     result = profile.observe(

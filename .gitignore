@@ -10,3 +10,11 @@ dist/
 !.env.example
 .DS_Store
 .adaptkit-playground.db*
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*shadow*.jsonl
+*.swp
+*.swo
+*~

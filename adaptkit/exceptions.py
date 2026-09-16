@@ -28,3 +28,11 @@ class DecisionNotFoundError(StorageError):
 
 class DecisionMismatchError(StorageError):
     """Raised when a decision does not match its persisted record."""
+
+
+class ActionSetMismatchError(StorageError):
+    """Raised when a persisted policy is reopened with different actions."""
+
+
+class IdempotencyConflictError(StorageError):
+    """Raised when an idempotency key is reused for a different payload."""

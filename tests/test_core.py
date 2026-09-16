@@ -88,7 +88,11 @@ class CoreTests(unittest.TestCase):
 
         def judge(messages: list[dict[str, str]]) -> dict[str, object]:
             captured.append(messages)
-            return {"target": "task_continuation", "sentiment": "none"}
+            return {
+                "target": "task_continuation",
+                "sentiment": "none",
+                "confidence": 1.0,
+            }
 
         evaluator = LLMFeedbackExtractor(
             judge=judge,
@@ -201,7 +205,11 @@ class CoreTests(unittest.TestCase):
     def test_signal_and_threshold_statuses(self):
         outputs = iter(
             [
-                {"target": "task_continuation", "sentiment": "none"},
+                {
+                    "target": "task_continuation",
+                    "sentiment": "none",
+                    "confidence": 1.0,
+                },
                 {"target": "behavior", "sentiment": "positive", "confidence": 0.34},
                 {"target": "behavior", "sentiment": "positive", "confidence": 0.35},
                 {"target": "behavior", "sentiment": "negative", "confidence": 0.35},
@@ -267,7 +275,7 @@ class CoreTests(unittest.TestCase):
         )
         result = profile.observe(**interaction(profile.choose("ctx"), "implicit"))
         self.assertEqual(result.status, ObservationStatus.LEARNER_IGNORED)
-        self.assertEqual(profile.state(), {})
+        self.assertEqual(profile.state()["ctx"]["a"], {"alpha": 1.0, "beta": 1.0})
 
     def test_malformed_output_fails_closed(self):
         profile = Profile(
@@ -280,7 +288,96 @@ class CoreTests(unittest.TestCase):
         result = profile.observe(**interaction(profile.choose("ctx"), "malformed"))
         self.assertEqual(result.status, ObservationStatus.EVALUATOR_ERROR)
         self.assertFalse(result.recorded)
-        self.assertEqual(profile.state(), {})
+        self.assertEqual(profile.state()["ctx"]["a"], {"alpha": 1.0, "beta": 1.0})
+
+    def test_llm_judge_cannot_escalate_its_feedback_source(self):
+        for index, source in enumerate(("explicit", "passive", "admin", "")):
+            profile = Profile(
+                user_id=f"u-{index}",
+                actions=["a"],
+                evaluator=LLMFeedbackExtractor(
+                    judge=lambda _, source=source: {
+                        "target": "behavior",
+                        "sentiment": "positive",
+                        "confidence": 0,
+                        "source": source,
+                    }
+                ),
+                implicit_confidence_threshold=0.70,
+            )
+            result = profile.observe(
+                **interaction(profile.choose("ctx"), f"hostile-source-{index}")
+            )
+            self.assertEqual(result.status, ObservationStatus.EVALUATOR_ERROR)
+            self.assertFalse(result.recorded)
+            self.assertEqual(
+                profile.state()["ctx"]["a"], {"alpha": 1.0, "beta": 1.0}
+            )
+
+        implicit = Profile(
+            user_id="implicit",
+            actions=["a"],
+            evaluator=LLMFeedbackExtractor(
+                judge=lambda _: {
+                    "target": "behavior",
+                    "sentiment": "positive",
+                    "confidence": 0,
+                    "source": "implicit",
+                }
+            ),
+            implicit_confidence_threshold=0.70,
+        )
+        below = implicit.observe(
+            **interaction(implicit.choose("ctx"), "legacy-implicit")
+        )
+        self.assertEqual(below.status, ObservationStatus.BELOW_THRESHOLD)
+        self.assertEqual(below.event.source, "implicit")
+        self.assertEqual(implicit.policy("ctx")["version"], 0)
+
+    def test_async_llm_judge_cannot_escalate_its_feedback_source(self):
+        for index, source in enumerate(("explicit", "passive", "admin", "")):
+            async def judge(_, source=source):
+                return {
+                    "target": "behavior",
+                    "sentiment": "positive",
+                    "confidence": 0,
+                    "source": source,
+                }
+
+            profile = Profile(
+                user_id=f"u-{index}",
+                actions=["a"],
+                evaluator=LLMFeedbackExtractor(async_judge=judge),
+            )
+            result = asyncio.run(
+                profile.aobserve(
+                    **interaction(profile.choose("ctx"), f"hostile-source-{index}")
+                )
+            )
+            self.assertEqual(result.status, ObservationStatus.EVALUATOR_ERROR)
+            self.assertFalse(result.recorded)
+            self.assertEqual(profile.policy("ctx")["version"], 0)
+
+        async def implicit_judge(_):
+            return {
+                "target": "behavior",
+                "sentiment": "positive",
+                "confidence": 0,
+            }
+
+        implicit = Profile(
+            user_id="implicit",
+            actions=["a"],
+            evaluator=LLMFeedbackExtractor(async_judge=implicit_judge),
+        )
+        below = asyncio.run(
+            implicit.aobserve(
+                **interaction(implicit.choose("ctx"), "zero-confidence")
+            )
+        )
+        self.assertEqual(below.status, ObservationStatus.BELOW_THRESHOLD)
+        self.assertEqual(below.event.source, "implicit")
+        self.assertEqual(implicit.policy("ctx")["version"], 0)
 
     def test_pre_v1_feedback_payload_fails_closed(self):
         profile = Profile(
@@ -292,6 +389,33 @@ class CoreTests(unittest.TestCase):
         )
         result = profile.observe(**interaction(profile.choose("ctx"), "legacy"))
         self.assertEqual(result.status, ObservationStatus.EVALUATOR_ERROR)
+
+    def test_llm_feedback_rejects_missing_or_invalid_confidence(self):
+        invalid_values = (None, True, math.nan, math.inf, -0.1, 1.1)
+        outputs = [
+            {"target": "behavior", "sentiment": "positive"},
+            *[
+                {
+                    "target": "behavior",
+                    "sentiment": "positive",
+                    "confidence": value,
+                }
+                for value in invalid_values
+            ],
+        ]
+        for index, output in enumerate(outputs):
+            profile = Profile(
+                user_id=f"invalid-confidence-{index}",
+                actions=["a"],
+                evaluator=LLMFeedbackExtractor(
+                    judge=lambda _, output=output: output
+                ),
+            )
+            result = profile.observe(
+                **interaction(profile.choose("ctx"), f"invalid-{index}")
+            )
+            self.assertEqual(result.status, ObservationStatus.EVALUATOR_ERROR)
+            self.assertEqual(profile.policy("ctx")["version"], 0)
 
     def test_custom_extractor_contract_violation_fails_closed(self):
         class InvalidExtractor(FeedbackExtractor):
@@ -317,7 +441,7 @@ class CoreTests(unittest.TestCase):
         result = profile.observe(**interaction(profile.choose("ctx"), "timeout"))
         self.assertEqual(result.error, "TimeoutError")
         self.assertNotIn("SENTINEL", repr(result))
-        self.assertEqual(profile.state(), {})
+        self.assertEqual(profile.state()["ctx"]["a"], {"alpha": 1.0, "beta": 1.0})
 
     def test_conversation_text_is_not_exported(self):
         sentinel = "SENTINEL-CONVERSATION-TEXT-92"
@@ -379,14 +503,18 @@ class CoreTests(unittest.TestCase):
         )
         with self.assertRaises(asyncio.CancelledError):
             asyncio.run(profile.aobserve(**interaction(profile.choose("ctx"), "cancel")))
-        self.assertEqual(profile.state(), {})
+        self.assertEqual(profile.state()["ctx"]["a"], {"alpha": 1.0, "beta": 1.0})
 
     def test_event_validation_and_derived_reward(self):
         positive = PreferenceEvent(
             FeedbackTarget.BEHAVIOR, FeedbackSentiment.POSITIVE, confidence=0.8
         )
+        negative = PreferenceEvent(
+            FeedbackTarget.BEHAVIOR, FeedbackSentiment.NEGATIVE, confidence=0.8
+        )
         self.assertTrue(positive.has_preference_signal)
         self.assertEqual(positive.reward, 1)
+        self.assertEqual(negative.reward, 0)
         with self.assertRaises(ValidationError):
             PreferenceEvent(FeedbackTarget.BEHAVIOR, FeedbackSentiment.NONE)
         with self.assertRaises(ValidationError):
@@ -398,6 +526,40 @@ class CoreTests(unittest.TestCase):
                 confidence=math.inf,
             )
 
+    def test_confidence_gates_learning_but_never_scales_binary_reward(self):
+        profile = Profile(
+            user_id="u",
+            actions=["a"],
+            passive_confidence_threshold=0.70,
+        )
+        positive = profile.signal(
+            profile.choose("ctx"),
+            signal_type="ui.acceptance",
+            sentiment="positive",
+            confidence=0.80,
+            idempotency_key="positive",
+        )
+        negative = profile.signal(
+            profile.choose("ctx"),
+            signal_type="ui.regeneration",
+            sentiment="negative",
+            confidence=0.80,
+            idempotency_key="negative",
+        )
+        rejected = profile.signal(
+            profile.choose("ctx"),
+            signal_type="ui.acceptance",
+            sentiment="positive",
+            confidence=0.69,
+            idempotency_key="below-threshold",
+        )
+        self.assertEqual(positive.effective_reward, 1.0)
+        self.assertEqual(negative.effective_reward, 0.0)
+        self.assertIsNone(rejected.effective_reward)
+        self.assertEqual(
+            profile.state()["ctx"]["a"], {"alpha": 2.0, "beta": 2.0}
+        )
+
     def test_observation_requires_evaluator(self):
         profile = Profile(user_id="u", actions=["a"])
         decision = profile.choose("ctx")
@@ -406,7 +568,11 @@ class CoreTests(unittest.TestCase):
 
     def test_sync_observation_with_async_only_judge_is_configuration_error(self):
         async def judge(_):
-            return {"target": "task_continuation", "sentiment": "none"}
+            return {
+                "target": "task_continuation",
+                "sentiment": "none",
+                "confidence": 1.0,
+            }
 
         profile = Profile(
             user_id="u",
@@ -464,7 +630,7 @@ class CoreTests(unittest.TestCase):
         profile = Profile(user_id="u", actions=["a"])
         profile.like(profile.choose("ctx"), idempotency_key="export")
         exported = profile.export_user()
-        self.assertEqual(exported["schema_version"], 1)
+        self.assertEqual(exported["schema_version"], 2)
         self.assertEqual(len(cast(list, exported["decisions"])), 1)
         profile.delete_user()
         self.assertEqual(profile.state(), {})

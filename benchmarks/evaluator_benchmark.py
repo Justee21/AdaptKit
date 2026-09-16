@@ -33,15 +33,15 @@ def conservative_rules(messages: list[dict[str, str]]) -> dict[str, Any]:
         phrase in message
         for phrase in ("weather tomorrow", "now help me", "let's work on", "deployment checklist")
     ):
-        return {"target": "unrelated", "sentiment": "none"}
+        return {"target": "unrelated", "sentiment": "none", "confidence": 0.9}
     if any(
         phrase in message
         for phrase in ("actually, that feature", "incident was", "it uses put", "total should")
     ):
-        return {"target": "answer_content", "sentiment": "none"}
+        return {"target": "answer_content", "sentiment": "none", "confidence": 0.9}
     if message.endswith("?"):
-        return {"target": "task_continuation", "sentiment": "none"}
-    return {"target": "unrelated", "sentiment": "none"}
+        return {"target": "task_continuation", "sentiment": "none", "confidence": 0.9}
+    return {"target": "unrelated", "sentiment": "none", "confidence": 0.9}
 
 
 def load_judge(spec: str | None) -> tuple[Callable, str]:
@@ -61,7 +61,7 @@ def score(
     predictions: list[dict[str, Any]],
     *,
     learning_threshold: float = 0.70,
-) -> dict[str, float | int]:
+) -> dict[str, float | int | None]:
     if len(expected) != len(predictions) or not expected:
         raise ValueError("expected and predictions must have the same nonzero length")
     detection_correct = 0
@@ -74,6 +74,9 @@ def score(
     true_behavior_predictions = 0
     behavior_predictions = 0
     false_direction_updates = 0
+    applied_behavior_predictions = 0
+    true_applied_behavior_predictions = 0
+    false_direction_learning_updates = 0
     invalid = 0
     for row, prediction in zip(expected, predictions):
         expected_feedback = row["expected_has_feedback"]
@@ -87,15 +90,24 @@ def score(
         target = prediction["target"]
         predicted_feedback = target == "behavior"
         predicted_direction = prediction["sentiment"]
+        applied_behavior = (
+            predicted_feedback
+            and prediction.get("confidence", 1.0) >= learning_threshold
+        )
         behavior_predictions += predicted_feedback
+        applied_behavior_predictions += applied_behavior
         detection_correct += predicted_feedback == expected_feedback
         target_correct += target == row["expected_target"]
         if expected_feedback:
             feedback_total += 1
             true_behavior_predictions += predicted_feedback
+            true_applied_behavior_predictions += applied_behavior
             direction_correct += predicted_feedback and predicted_direction == row["expected_direction"]
             false_direction_updates += (
                 predicted_feedback and predicted_direction != row["expected_direction"]
+            )
+            false_direction_learning_updates += (
+                applied_behavior and predicted_direction != row["expected_direction"]
             )
         else:
             non_feedback_total += 1
@@ -109,17 +121,47 @@ def score(
         "learning_threshold": learning_threshold,
         "feedback_detection_accuracy": detection_correct / len(expected),
         "behavior_precision": (
-            true_behavior_predictions / behavior_predictions if behavior_predictions else 0.0
+            true_behavior_predictions / behavior_predictions
+            if behavior_predictions
+            else None
         ),
-        "behavior_recall": true_behavior_predictions / feedback_total,
+        "behavior_recall": (
+            true_behavior_predictions / feedback_total if feedback_total else None
+        ),
+        "applied_behavior_precision": (
+            true_applied_behavior_predictions / applied_behavior_predictions
+            if applied_behavior_predictions
+            else None
+        ),
+        "applied_behavior_recall": (
+            true_applied_behavior_predictions / feedback_total
+            if feedback_total
+            else None
+        ),
         "target_accuracy": target_correct / len(expected),
-        "direction_accuracy": direction_correct / feedback_total,
-        "false_direction_update_rate": (
-            false_direction_updates / behavior_predictions if behavior_predictions else 0.0
+        "direction_accuracy": (
+            direction_correct / feedback_total if feedback_total else None
         ),
-        "false_positive_rate": false_positives / non_feedback_total,
+        "false_direction_update_rate": (
+            false_direction_updates / behavior_predictions
+            if behavior_predictions
+            else None
+        ),
+        "false_positive_rate": (
+            false_positives / non_feedback_total if non_feedback_total else None
+        ),
         "false_positive_learning_rate": (
             false_positive_learning_updates / non_feedback_total
+            if non_feedback_total
+            else None
+        ),
+        "false_direction_learning_rate": (
+            false_direction_learning_updates / applied_behavior_predictions
+            if applied_behavior_predictions
+            else None
+        ),
+        "harmful_learning_updates": (
+            false_positive_learning_updates + false_direction_learning_updates
         ),
         "invalid_outputs": invalid,
     }

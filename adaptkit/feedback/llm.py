@@ -80,15 +80,24 @@ class LLMFeedbackExtractor(FeedbackExtractor):
         unknown = set(value) - _OUTPUT_FIELDS
         if unknown:
             raise ValidationError(f"judge output contains unknown fields: {sorted(unknown)}")
-        if "target" not in value or "sentiment" not in value:
-            raise ValidationError("judge output must include target and sentiment")
+        if not {"target", "sentiment", "confidence"}.issubset(value):
+            raise ValidationError(
+                "judge output must include target, sentiment, and confidence"
+            )
         data = dict(value)
+        supplied_source = data.pop("source", "implicit")
+        if supplied_source != "implicit":
+            raise ValidationError("LLM judge source must be implicit")
         try:
-            data["target"] = FeedbackTarget(data["target"])
-            data["sentiment"] = FeedbackSentiment(data["sentiment"])
-            return PreferenceEvent(**data)
+            return PreferenceEvent(
+                target=FeedbackTarget(data["target"]),
+                sentiment=FeedbackSentiment(data["sentiment"]),
+                confidence=data["confidence"],
+                source="implicit",
+                reason=data.get("reason"),
+            )
         except (TypeError, ValueError) as exc:
-            raise ValidationError(f"invalid judge output: {exc}") from exc
+            raise ValidationError("invalid judge output") from exc
 
     def extract(self, **interaction: Any) -> PreferenceEvent:
         if self._judge is None:

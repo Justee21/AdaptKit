@@ -85,7 +85,9 @@ SCENARIOS = {"ordering": ORDERING_SCENARIO, "workflow": WORKFLOW_SCENARIO}
 # Kept as aliases for integrations importing the original two-action example.
 ACTION_INSTRUCTIONS = ORDERING_ACTIONS
 BASE_INSTRUCTIONS = ORDERING_BASE_INSTRUCTIONS
-PLAYGROUND_CONFIDENCE_THRESHOLD = 0.90
+OFFLINE_PLAYGROUND_CONFIDENCE_THRESHOLD = 0.90
+# Backward-compatible alias: this constant applies only to deterministic offline mode.
+PLAYGROUND_CONFIDENCE_THRESHOLD = OFFLINE_PLAYGROUND_CONFIDENCE_THRESHOLD
 
 Conversation = Sequence[dict[str, str]]
 Generator = Callable[[str, str, Conversation], tuple[str, dict[str, int | None]]]
@@ -273,7 +275,12 @@ def main() -> None:
 
     repo_root = Path(__file__).resolve().parents[1]
     if args.real:
+        from examples.configuration import required_confidence_threshold
+
         evaluator, generate, agent_model, judge_model = real_components(repo_root, scenario)
+        confidence_threshold = required_confidence_threshold(
+            "ADAPTKIT_IMPLICIT_CONFIDENCE_THRESHOLD"
+        )
         print(f"Real mode: agent={agent_model} judge={judge_model} store=False")
     else:
         evaluator = LLMFeedbackExtractor(
@@ -283,6 +290,7 @@ def main() -> None:
         generate = lambda prompt, action, history: _offline_generate_for(
             prompt, action, history, scenario
         )
+        confidence_threshold = OFFLINE_PLAYGROUND_CONFIDENCE_THRESHOLD
         print("Offline mode: deterministic local agent and evaluator")
 
     store = SQLiteStore(args.database)
@@ -296,7 +304,7 @@ def main() -> None:
             evaluator=evaluator,
             store=store,
             seed=7,
-            implicit_confidence_threshold=PLAYGROUND_CONFIDENCE_THRESHOLD,
+            implicit_confidence_threshold=confidence_threshold,
         )
 
     profile = new_profile(current_user)
@@ -308,7 +316,7 @@ def main() -> None:
     print_help()
     print(f"Scenario: {args.scenario}")
     print(f"Actions under test: {', '.join(scenario.actions)}")
-    print(f"Implicit learning threshold: {PLAYGROUND_CONFIDENCE_THRESHOLD:.2f}")
+    print(f"Implicit learning threshold: {confidence_threshold:.2f}")
 
     while True:
         try:

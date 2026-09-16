@@ -5,18 +5,19 @@ from collections.abc import Mapping, Sequence
 from threading import Lock
 
 from adaptkit.storage.base import StateUpdater
+from adaptkit.storage import StateStore
 
 from .base import BaseLearner
 
 
 class RandomLearner(BaseLearner):
-    def __init__(self, store, *, seed: int | None = None) -> None:
+    def __init__(self, store: StateStore, *, seed: int | None = None) -> None:
         super().__init__(store)
         self._rng = random.Random(seed)
         self._rng_lock = Lock()
 
-    @property
-    def initial_state(self) -> Mapping[str, float]:
+    def initial_state(self, action: str) -> Mapping[str, float]:
+        del action
         return {"alpha": 1.0, "beta": 1.0}
 
     def select(
@@ -27,6 +28,6 @@ class RandomLearner(BaseLearner):
             return self._rng.choice(actions)
 
     def updater(self, reward: int) -> StateUpdater | None:
-        if reward not in (-1, 1):
-            raise ValueError("reward must be 1 or -1")
+        if isinstance(reward, bool) or reward not in (0, 1):
+            raise ValueError("reward must be 0 or 1")
         return None
