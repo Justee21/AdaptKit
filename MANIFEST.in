@@ -3,7 +3,6 @@ include pyproject.toml .env.example
 recursive-include adaptkit *.py py.typed
 recursive-include docs *.md
 recursive-include examples *.py
-recursive-include scripts *.py
 recursive-include benchmarks *.py *.json
 recursive-include artifacts *.json *.svg
 global-exclude *.py[cod] __pycache__ .DS_Store Thumbs.db *.db *.db-* *.sqlite *.sqlite3 *.jsonl *.pem *.key *.p12 *.pfx .pypirc credentials.json secrets.json *.swp *.swo *~

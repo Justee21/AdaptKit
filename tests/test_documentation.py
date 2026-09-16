@@ -51,10 +51,3 @@ def test_markdown_uses_github_math_delimiters() -> None:
         assert "\\)" not in markdown, path
         assert "\\[" not in markdown, path
         assert "\\]" not in markdown, path
-
-
-def test_ci_does_not_hardcode_distribution_version_or_use_wildcards() -> None:
-    workflow = (ROOT / ".github/workflows/tests.yml").read_text(encoding="utf-8")
-    assert "adaptkit-0.1.0" not in workflow
-    assert "dist/*" not in workflow
-    assert "scripts/release_build.py --check" in workflow

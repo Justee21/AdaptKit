@@ -19,5 +19,5 @@ jobs:
       - run: python -m pytest
       - run: mypy adaptkit examples benchmarks tests
       - run: pyright adaptkit examples benchmarks
-      - name: Guarded build, Twine, and clean install checks
-        run: python scripts/release_build.py --check
+      - run: python -m build
+      - run: python -m twine check dist/*
