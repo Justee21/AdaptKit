@@ -26,7 +26,6 @@ dependencies = []
 Homepage = "https://github.com/Justee21/AdaptKit"
 Repository = "https://github.com/Justee21/AdaptKit"
 Issues = "https://github.com/Justee21/AdaptKit/issues"
-Changelog = "https://github.com/Justee21/AdaptKit/blob/main/CHANGELOG.md"
 Documentation = "https://github.com/Justee21/AdaptKit#readme"
 
 [project.optional-dependencies]

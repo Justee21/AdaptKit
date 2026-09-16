@@ -29,16 +29,7 @@ def test_core_dependencies_are_empty_and_provider_integrations_are_optional() ->
 
 
 def test_repository_links_in_markdown_point_to_existing_files() -> None:
-    paths = [
-        ROOT / name
-        for name in (
-            "README.md",
-            "CHANGELOG.md",
-            "CONTRIBUTING.md",
-            "RELEASE_CHECKLIST.md",
-            "SECURITY.md",
-        )
-    ]
+    paths = [ROOT / "README.md"]
     paths.extend((ROOT / "docs").glob("*.md"))
     markdown = "\n".join(
         path.read_text(encoding="utf-8") for path in paths

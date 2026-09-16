@@ -1,4 +1,4 @@
-include LICENSE README.md CHANGELOG.md CONTRIBUTING.md SECURITY.md RELEASE_CHECKLIST.md
+include LICENSE README.md
 include pyproject.toml .env.example
 recursive-include adaptkit *.py py.typed
 recursive-include docs *.md
