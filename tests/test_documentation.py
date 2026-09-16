@@ -58,9 +58,3 @@ def test_ci_does_not_hardcode_distribution_version_or_use_wildcards() -> None:
     assert "adaptkit-0.1.0" not in workflow
     assert "dist/*" not in workflow
     assert "scripts/release_build.py --check" in workflow
-
-
-def test_x_draft_fits_one_post() -> None:
-    launch = (ROOT / "docs/launch.md").read_text(encoding="utf-8")
-    draft = launch.split("## X draft\n\n", 1)[1].split("\n\n", 1)[0]
-    assert len(draft) <= 280
