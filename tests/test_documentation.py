@@ -51,6 +51,17 @@ def test_repository_links_in_markdown_point_to_existing_files() -> None:
         assert (ROOT / target).is_file(), target
 
 
+def test_markdown_uses_github_math_delimiters() -> None:
+    paths = list(ROOT.glob("*.md"))
+    paths.extend((ROOT / "docs").glob("*.md"))
+    for path in paths:
+        markdown = path.read_text(encoding="utf-8")
+        assert "\\(" not in markdown, path
+        assert "\\)" not in markdown, path
+        assert "\\[" not in markdown, path
+        assert "\\]" not in markdown, path
+
+
 def test_ci_does_not_hardcode_distribution_version_or_use_wildcards() -> None:
     workflow = (ROOT / ".github/workflows/tests.yml").read_text(encoding="utf-8")
     assert "adaptkit-0.1.0" not in workflow

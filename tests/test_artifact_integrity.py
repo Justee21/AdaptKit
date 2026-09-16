@@ -117,9 +117,9 @@ def test_readme_numbers_match_committed_artifacts() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     feedback = _load("real_evaluator_summary.json")
     routing = _load("real_prompt_router_summary.json")
-    assert f"\\({feedback['frozen_learning_threshold']:.2f}\\)" in readme
-    assert "\\(95.42\\%\\) detection" in readme
-    assert "\\(99.17\\%\\) direction" in readme
-    assert "\\(8.33\\%\\) raw false positives" in readme
-    assert f"\\({routing['frozen_routing_threshold']:.2f}\\)" in readme
-    assert "\\(97.78\\%\\) cue routing" in readme
+    assert f"| {feedback['frozen_learning_threshold']:.2f} |" in readme
+    assert "95.42% detection" in readme
+    assert "99.17% direction" in readme
+    assert "8.33% raw false positives" in readme
+    assert f"| {routing['frozen_routing_threshold']:.2f} |" in readme
+    assert "97.78% cue routing" in readme

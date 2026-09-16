@@ -20,7 +20,7 @@ Prompt routing sees a nonempty current prompt transiently. It can override polic
 
 Feedback is attributed to the action recorded by an immutable decision. LLM judge output can only become implicit feedback; the judge cannot claim an explicit or passive trust source. One observation insert and its posterior update occur atomically. Exact idempotent retries deduplicate; conflicting operation identities fail. Conversational `observe()` replays remain privacy-first because AdaptKit does not retain prompt text or hashes of it.
 
-The built-in Thompson learner is Beta–Bernoulli. An accepted reward is \(r\in\{0,1\}\), with \(\alpha\leftarrow\alpha+r\) and \(\beta\leftarrow\beta+(1-r)\). Confidence gates whether implicit or passive evidence is accepted; it never becomes a fractional reward. Continuous, delayed, multi-step, or feature-based rewards require a different future learner and are outside 0.1.0.
+The built-in Thompson learner is Beta–Bernoulli. An accepted reward is $`r\in\{0,1\}`$, with $`\alpha\leftarrow\alpha+r`$ and $`\beta\leftarrow\beta+(1-r)`$. Confidence gates whether implicit or passive evidence is accepted; it never becomes a fractional reward. Continuous, delayed, multi-step, or feature-based rewards require a different future learner and are outside 0.1.0.
 
 Built-in persistence stores structured identifiers, action keys, posterior parameters, versions, classification labels, and explicitly supplied passive metadata. It excludes prompts, responses, evaluator reasoning, instructions, and provider credentials.
 

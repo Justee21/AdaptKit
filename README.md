@@ -51,7 +51,7 @@ ADAPTKIT_IMPLICIT_CONFIDENCE_THRESHOLD=your-calibrated-threshold
 ADAPTKIT_PROMPT_CONFIDENCE_THRESHOLD=your-calibrated-threshold
 ```
 
-`OPENAI_AGENT_MODEL` is optional and falls back to `OPENAI_JUDGE_MODEL`. Both thresholds are required by the corresponding real-model examples and must be calibrated for the exact judge model, classifier prompt, and traffic. The recorded Terra values of \(0.95\) for feedback and \(0.70\) for prompt routing are benchmark results, not universal defaults. Never commit `.env`; only `.env.example` belongs in Git.
+`OPENAI_AGENT_MODEL` is optional and falls back to `OPENAI_JUDGE_MODEL`. Both thresholds are required by the corresponding real-model examples and must be calibrated for the exact judge model, classifier prompt, and traffic. The recorded Terra values of 0.95 for feedback and 0.70 for prompt routing are benchmark results, not universal defaults. Never commit `.env`; only `.env.example` belongs in Git.
 
 Memory SDKs are independent extras; install only the provider you use. The runnable integration examples remain in the repository checkout:
 
@@ -90,17 +90,17 @@ response = agent.run(
 profile.like(decision, idempotency_key="thumbs-up-event-456")
 ```
 
-The returned immutable `Decision` records its ID, user, context, selected action, creation time, and the policy version that produced it. `policy_version` begins at \(0\) and increments once whenever that user's policy for that context changes.
+The returned immutable `Decision` records its ID, user, context, selected action, creation time, and the policy version that produced it. `policy_version` begins at 0 and increments once whenever that user's policy for that context changes.
 
 ## Learning and reward semantics
 
-Each `(user, context, action)` starts with a posterior of \(\operatorname{Beta}(1,1)\). Every accepted observation has a binary selected-action-relative reward:
+Each `(user, context, action)` starts with a posterior of $`\operatorname{Beta}(1,1)`$. Every accepted observation has a binary selected-action-relative reward:
 
-\[
+```math
 r\in\{0,1\},\qquad
 \alpha\leftarrow\alpha+r,\qquad
 \beta\leftarrow\beta+(1-r)
-\]
+```
 
 This Beta–Bernoulli model is intentional: positive evidence reinforces the selected action and negative evidence moves away from it. Confidence controls whether implicit or passive evidence is accepted; it is not the reward magnitude and does not fractionalize updates in release 0.1.0. Passive telemetry must be deliberately translated by the application into positive or negative evidence for the selected action.
 
@@ -155,7 +155,7 @@ profile = Profile(
 )
 ```
 
-Unspecified actions use `prior_alpha` and `prior_beta`. Priors are materialized the first time a user/context policy is used, remain at policy version \(0\), and cannot be changed by reopening the same stored policy with different constructor values. Existing SQLite state always wins. Applications may derive these priors from their own structured account memory or another profile's exported posterior; AdaptKit does not generalize across contexts automatically.
+Unspecified actions use `prior_alpha` and `prior_beta`. Priors are materialized the first time a user/context policy is used, remain at policy version 0, and cannot be changed by reopening the same stored policy with different constructor values. Existing SQLite state always wins. Applications may derive these priors from their own structured account memory or another profile's exported posterior; AdaptKit does not generalize across contexts automatically.
 
 For external memory, keep translation application-owned:
 
@@ -175,7 +175,7 @@ profile = Profile(
 )
 ```
 
-The default translated preference is deliberately modest: `guided_learning` becomes \(\operatorname{Beta}(4,2)\), while unspecified actions keep the profile default. “For this answer, be concise” is a temporary routing cue; “I generally prefer concise answers” may be a durable memory. Contradictory, ambiguous, or non-allowlisted memories yield neutral priors. See the optional [Mem0 example](https://github.com/Justee21/AdaptKit/blob/main/examples/mem0_cold_start.py), [Letta example](https://github.com/Justee21/AdaptKit/blob/main/examples/letta_cold_start.py), and [architecture guide](https://github.com/Justee21/AdaptKit/blob/main/docs/architecture.md). These are one-time cold-start reads, not continuous two-way memory synchronization. The application must not convert arbitrary memory text into trusted numeric priors.
+The default translated preference is deliberately modest: `guided_learning` becomes $`\operatorname{Beta}(4,2)`$, while unspecified actions keep the profile default. “For this answer, be concise” is a temporary routing cue; “I generally prefer concise answers” may be a durable memory. Contradictory, ambiguous, or non-allowlisted memories yield neutral priors. See the optional [Mem0 example](https://github.com/Justee21/AdaptKit/blob/main/examples/mem0_cold_start.py), [Letta example](https://github.com/Justee21/AdaptKit/blob/main/examples/letta_cold_start.py), and [architecture guide](https://github.com/Justee21/AdaptKit/blob/main/docs/architecture.md). These are one-time cold-start reads, not continuous two-way memory synchronization. The application must not convert arbitrary memory text into trusted numeric priors.
 
 ## Implicit conversational feedback
 
@@ -209,7 +209,7 @@ result = profile.observe(
 
 Sentiment is always about the action that produced the prior response. If `explanation_first` was selected and the user politely asks to see the patch first, that is negative evidence for `explanation_first`, not positive evidence for the requested replacement.
 
-The default implicit confidence threshold is \(0.70\). Evaluator failures, malformed output, weak signals, and non-behavior targets fail closed without learning. `aobserve()` provides the equivalent asynchronous path.
+The default implicit confidence threshold is 0.70. Evaluator failures, malformed output, weak signals, and non-behavior targets fail closed without learning. `aobserve()` provides the equivalent asynchronous path.
 
 `LLMFeedbackExtractor` always constructs `source="implicit"` internally. A legacy judge result may include `source="implicit"`, but any attempt to claim `explicit`, `passive`, or another trust source is rejected and cannot learn. Application-owned `FeedbackExtractor` implementations may deliberately construct other valid event sources when the application—not an LLM—owns that trust decision.
 
@@ -217,9 +217,9 @@ The default implicit confidence threshold is \(0.70\). Evaluator failures, malfo
 
 One decision may receive multiple distinct signals, such as implicit feedback followed by a thumbs-up. The invariant is:
 
-\[
+```math
 \boxed{\text{one valid }(\text{decision\_id},\text{idempotency\_key})\rightarrow\text{at most one policy update}}
-\]
+```
 
 ```python
 profile.like(decision, idempotency_key="thumb-up-18")
@@ -261,7 +261,7 @@ result = profile.signal(
 
 `signal_type` is an open lowercase namespaced identifier rather than a closed enum, allowing values such as `ui.regeneration`, `agent.tool_approval`, or `task.completion`. Acceptance, completion, dwell time, approval, and abandonment are not inherently behavior preferences: the application must intentionally map each signal to positive or negative evidence for the selected action.
 
-Passive confidence is gated by `passive_confidence_threshold`, which defaults to the implicit threshold. Accepted updates remain binary. AdaptKit persists `source="passive"`, signal type, confidence, and JSON metadata. Metadata is limited to \(8\,\mathrm{KiB}\), four levels of nesting, and finite numbers. Do not include prompts, responses, secrets, or sensitive user data. Reusing an idempotency key with the same payload returns `duplicate`; reusing it with a different payload raises `IdempotencyConflictError`.
+Passive confidence is gated by `passive_confidence_threshold`, which defaults to the implicit threshold. Accepted updates remain binary. AdaptKit persists `source="passive"`, signal type, confidence, and JSON metadata. Metadata is limited to 8 KiB, four levels of nesting, and finite numbers. Do not include prompts, responses, secrets, or sensitive user data. Reusing an idempotency key with the same payload returns `duplicate`; reusing it with a different payload raises `IdempotencyConflictError`.
 
 ## SQLite persistence
 
@@ -274,7 +274,7 @@ profile = Profile(user_id="user-123", actions=["a", "b"], store=store)
 
 `SQLiteStore` is designed for a single host. Observation insertion and its posterior update occur in one transaction, so a crash cannot leave a partial learning update. Threads and local processes can share a database; lock waits default to one second and then raise `StorageBusyError`.
 
-Storage schema version \(2\) performs one transactional upgrade from schema \(1\); other unsupported versions are rejected. The order-independent action-set fingerprint is bound on first use. Reopening the same user/context with added, removed, or renamed actions raises `ActionSetMismatchError` instead of silently introducing new priors. A migrated schema-\(1\) policy binds to the first compatible complete action set supplied after upgrade; its previously observed action keys must be a subset.
+Storage schema version 2 performs one transactional upgrade from schema 1; other unsupported versions are rejected. The order-independent action-set fingerprint is bound on first use. Reopening the same user/context with added, removed, or renamed actions raises `ActionSetMismatchError` instead of silently introducing new priors. A migrated schema-1 policy binds to the first compatible complete action set supplied after upgrade; its previously observed action keys must be a subset.
 
 `InMemoryStore` remains the zero-configuration default and provides atomic thread-level updates, but it does not survive a restart or coordinate multiple processes.
 
@@ -383,7 +383,7 @@ The first turn makes one generation request. Each later conversational turn judg
 
 The playground keeps up to four user/assistant turns in memory so follow-ups such as “re-explain that” retain conversational context. This text is sent to the configured agent model but is not written to AdaptKit's SQLite store. Type `/quit` before entering the launch command again; launch commands belong at the normal shell prompt, not inside the playground prompt.
 
-Offline playground mode uses a deterministic \(0.90\) threshold. Real mode requires `ADAPTKIT_IMPLICIT_CONFIDENCE_THRESHOLD`; it never silently applies the Terra value to another model. AdaptKit's provider-independent `Profile` default remains \(0.70\), but production integrators must benchmark and explicitly configure thresholds for their own evaluator, prompt, model, and traffic.
+Offline playground mode uses a deterministic 0.90 threshold. Real mode requires `ADAPTKIT_IMPLICIT_CONFIDENCE_THRESHOLD`; it never silently applies the Terra value to another model. AdaptKit's provider-independent `Profile` default remains 0.70, but production integrators must benchmark and explicitly configure thresholds for their own evaluator, prompt, model, and traffic.
 
 ### Expanded workflow dogfood
 
@@ -399,7 +399,7 @@ python -m examples.interactive_personalization \
 
 Respond naturally after each answer—for example, “I learn better when you guide me through the reasoning before the complete answer,” or simply continue when the presentation was neutral. Use a new user ID when changing scenarios because the persisted policy's action set must remain stable. Switch contexts with `/context debugging` or `/context architecture` to see independent preferences for the same user.
 
-With \(K=4\) actions, Thompson Sampling explores more alternatives and normally needs more observations than the focused \(K=2\) ordering test. The headings make adherence easy to inspect, but real personalization should be judged over several turns rather than a single selection.
+With four actions, Thompson Sampling explores more alternatives and normally needs more observations than the focused two-action ordering test. The headings make adherence easy to inspect, but real personalization should be judged over several turns rather than a single selection.
 
 ## Privacy boundaries
 
@@ -418,7 +418,7 @@ PYTHONPATH=. python benchmarks/evaluator_benchmark.py
 
 The bandit simulation checks whether Thompson Sampling learns a synthetic preference. The deterministic evaluator uses hand-written keyword rules over 28 labeled examples. It is a pipeline smoke test for schema validation and metric calculation—not evidence of real LLM accuracy.
 
-The feedback benchmark evaluates \(120\) hand-authored labeled cases, and the initial-prompt benchmark evaluates \(80\). Each has a fixed, disjoint calibration/holdout split with a cross-split near-duplicate guard. Three deployment-shaped runs use calibration data only to freeze a threshold from \(\{0.70,0.80,0.90,0.95\}\); release gates are then applied independently to every run on holdout data at that frozen threshold.
+The feedback benchmark evaluates 120 hand-authored labeled cases, and the initial-prompt benchmark evaluates 80. Each has a fixed, disjoint calibration/holdout split with a cross-split near-duplicate guard. Three deployment-shaped runs use calibration data only to freeze a threshold from `{0.70, 0.80, 0.90, 0.95}`; release gates are then applied independently to every run on holdout data at that frozen threshold.
 
 ```bash
 PYTHONPATH=. python benchmarks/openai_evaluator_benchmark.py \
@@ -427,14 +427,14 @@ PYTHONPATH=. python benchmarks/openai_prompt_routing_benchmark.py \
   --runs 3 --workers 8
 ```
 
-Both summaries report per-run metrics, ranges, Wilson \(95\%\) confidence intervals, failure IDs, token usage, and whether every holdout run passed. Committed artifact checks bind the dataset, classifier prompt, gates, and README claims. Gates are point-estimate safety checks at the frozen threshold; even zero harmful errors on a small holdout is not strong statistical evidence by itself. These nondeterministic paid benchmarks remain outside CI and never write request text into artifacts.
+Both summaries report per-run metrics, ranges, Wilson 95% confidence intervals, failure IDs, token usage, and whether every holdout run passed. Committed artifact checks bind the dataset, classifier prompt, gates, and README claims. Gates are point-estimate safety checks at the frozen threshold; even zero harmful errors on a small holdout is not strong statistical evidence by itself. These nondeterministic paid benchmarks remain outside CI and never write request text into artifacts.
 
 The latest checked `gpt-5.6-terra` run used three independent runs of each dataset and passed every holdout gate:
 
 | Benchmark | Data per run | Frozen threshold | Mean holdout result | Safety result |
 | --- | --- | ---: | --- | --- |
-| Feedback judge | \(40\) calibration + \(80\) holdout | \(0.95\) | \(95.42\%\) detection, \(99.17\%\) direction, \(8.33\%\) raw false positives | \(100\%\) applied precision, \(0\) harmful updates, \(0\) invalid outputs |
-| Initial-prompt router | \(20\) calibration + \(60\) holdout | \(0.70\) | \(97.78\%\) cue routing, \(100\%\) routed precision | \(0\) wrong-action overrides, \(0\) no-cue overrides, \(0\) invalid outputs |
+| Feedback judge | 40 calibration + 80 holdout | 0.95 | 95.42% detection, 99.17% direction, 8.33% raw false positives | 100% applied precision, 0 harmful updates, 0 invalid outputs |
+| Initial-prompt router | 20 calibration + 60 holdout | 0.70 | 97.78% cue routing, 100% routed precision | 0 wrong-action overrides, 0 no-cue overrides, 0 invalid outputs |
 
 The raw feedback false-positive rate includes low-confidence classifications blocked by the frozen learning threshold. Full per-run metrics and confidence intervals are in [`artifacts/real_evaluator_summary.json`](https://github.com/Justee21/AdaptKit/blob/main/artifacts/real_evaluator_summary.json) and [`artifacts/real_prompt_router_summary.json`](https://github.com/Justee21/AdaptKit/blob/main/artifacts/real_prompt_router_summary.json).
 
@@ -480,5 +480,5 @@ The normal test suite makes no provider or model requests and never requires an 
 - Single-host SQLite, not distributed coordination.
 - Immediate feedback attribution to a persisted decision; no long-horizon rewards.
 - No provider adapters in the core package and no automatic prompt rewriting.
-- Schema version \(2\) supports only the targeted schema-\(1\) upgrade; there is no general migration framework.
-- A migrated schema-\(1\) pairwise-operation key has no stored operation identity; its first schema-\(2\) replay binds that identity, after which conflicting reuse is rejected.
+- Schema version 2 supports only the targeted schema-1 upgrade; there is no general migration framework.
+- A migrated schema-1 pairwise-operation key has no stored operation identity; its first schema-2 replay binds that identity, after which conflicting reuse is rejected.

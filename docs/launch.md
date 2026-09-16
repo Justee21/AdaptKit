@@ -27,7 +27,7 @@ AdaptKit 0.1.0 is now a public alpha: a provider-independent Python SDK that lea
    - Choose an action, map it to visible application behavior, observe an outcome, update the posterior.
    - Explain per-user, per-context state and immutable decisions.
 3. **Why Beta–Bernoulli Thompson Sampling**
-   - Show \(r\in\{0,1\}\), \(\alpha\leftarrow\alpha+r\), and \(\beta\leftarrow\beta+(1-r)\).
+   - Show $`r\in\{0,1\}`$, $`\alpha\leftarrow\alpha+r`$, and $`\beta\leftarrow\beta+(1-r)`$.
    - Explain exploration, exploitation, binary feedback, and confidence gating.
 4. **How an action changes an actual agent**
    - Map `Decision.action` to a system instruction, workflow branch, or tool allowlist.
