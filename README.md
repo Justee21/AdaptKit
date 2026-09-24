@@ -10,9 +10,9 @@ This SDK doesn't wrap your agent or rewrite your prompts, and the built-in store
 
 ## Demo
 
-[![Watch the 45-second AdaptKit demo](assets/adaptkit-demo-preview.png)](https://github.com/Justee21/AdaptKit/releases/download/v0.1.0/AdaptKit-X-demo-45s.mp4)
+https://github.com/user-attachments/assets/7c8e9be1-e4de-43cf-9ff2-9517017bf8d8
 
-[Watch the 45-second silent demo](https://github.com/Justee21/AdaptKit/releases/download/v0.1.0/AdaptKit-X-demo-45s.mp4): install AdaptKit, wire actions to agent instructions, and see user feedback change the policy.
+45-second silent demo: install AdaptKit, wire actions to agent instructions, and see user feedback change the policy.
 
 ## Why??
 Many times users want different things/behaviors from the same agent. People are different and thus learn and work differently from one another, so I created an SDK to help an agent adapt to each user. 
